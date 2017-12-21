@@ -1,7 +1,7 @@
 
-### Simple, scalable and super fast file system based storage library
+### Simple and super fast file system based storage library
 
-`AcroFS` is a very small, simple, scalable and super fast file system based storage library that can manage huge amounts of files on your file system
+`AcroFS` is a very small, simple and super fast file system based storage library that can manage huge amounts of files on your file system
 
 
 
