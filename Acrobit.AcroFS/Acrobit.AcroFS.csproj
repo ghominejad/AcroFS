@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Gita.GFS</RootNamespace>
-    <AssemblyName>Gita.GFS</AssemblyName>
+    <RootNamespace>Acrobit.AcroFS</RootNamespace>
+    <AssemblyName>Acrobit.AcroFS</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

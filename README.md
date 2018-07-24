@@ -1,12 +1,15 @@
 
-### Simple, scalable and super fast file system based storage library
+### Cross-platform, small and super fast file-based storage library
 
-`AcroFS` is a very small, simple, scalable and super fast file system based storage library that can manage huge amounts of files on your file system
+`AcroFS` is a very small, cross-platform and super fast file system based storage library that can manage huge amounts of files on your file system
 
 
 
 
 ``` csharp
+
+// defining the store
+var _storage = FileStore.GetStore("c:\\store1");
 
 // store
 var docId = _storage.Store(data);
@@ -26,9 +29,13 @@ var data = _storage.Load(docId);
 - Store/Load Attachments related to a doc
 - .Net Core / Mono / Linux / Mac Support 
 
+### Download
+
+[![NuGet version](https://img.shields.io/nuget/v/Acrobit.AcroFS.svg)](https://www.nuget.org/packages/Acrobit.AcroFS)
+
 ### How it works
 
-It keeps the last ID in memory and generates new ones by a simple atomic +1 operation and it is very fast.
+It keeps the last ID in memory and generates new ones by a simple atomic +1 operation and so it's very fast.
 It converts a doc id into a hex number and stores it as 4 hirarchy folders
 
     StorageRoot\12\31\26\5A\17
@@ -52,43 +59,43 @@ StorageRoot\...\17
 - Storing / Loading Texts :
 ``` csharp
 // defining the store
-var _store = FileStore.GetStore("c:\\store1");
+var _storage = FileStore.GetStore("c:\\store1");
 
 // store    
-long docId = _store.StoreText("the content");
+long docId = _storage.StoreText("the content");
 
 // load
-Assert.Equal("the content", _store.LoadText(docId));
+Assert.Equal("the content", _storage.LoadText(docId));
 ```
  <br/>
 
-- Storing / Loading Streams :
+- Working with Streams :
 ``` csharp
 // store    
-long docId = _store.Store(theStream);
+long docId = _storage.Store(theStream);
 
 // load
-var myStream = _store.Load(docId));
+var myStream = _storage.Load(docId));
 ```
 <br/>
 
 - Attachments :
 ``` csharp
 // create doc
-long docId = _store.StoreText("the content");
+long docId = _storage.StoreText("the content");
 
 // store two attachments
-_store.AttachText(docId, "attach-name-1", "attachment content 1");
-_store.AttachText(docId, "attach-name-2", "attachment content 2");
+_storage.AttachText(docId, "attach-name-1", "attachment content 1");
+_storage.AttachText(docId, "attach-name-2", "attachment content 2");
 
 // load all attachments as list of strings
-IList<string> attachs = _store.LoadTextAttachs(docId);
+IList<string> attachs = _storage.LoadTextAttachs(docId);
 
 // load all attachments as list of streams
-IList<Stream> attachs = _store.LoadAttachs(docId);
+IList<Stream> attachs = _storage.LoadAttachs(docId);
 
 // load "attach-name-1" 
-string myAttachmentText = _store.LoadTextAttach(docId, "attach-name-1");
+string myAttachmentText = _storage.LoadTextAttach(docId, "attach-name-1");
 
 ```
 
@@ -97,11 +104,11 @@ string myAttachmentText = _store.LoadTextAttach(docId, "attach-name-1");
 - GZip Compresion for Texts :
 ``` csharp
 // store    
-long docId = _store.StoreText("a large text", 
+long docId = _storage.StoreText("a large text", 
     options: StoreOptions.Compress);
 
 // load
-var myText = _store.LoadText(docId, 
+var myText = _storage.LoadText(docId, 
     options: LoadOptions.Decompress);
 ```
 
@@ -110,16 +117,16 @@ var myText = _store.LoadText(docId,
 - Sub Storages 
 ``` csharp
 //  creating news docs
-long newsId1 = _store.StoreText("news content 1", "news");
-long newsId2 = _store.StoreText("news content 2", "news");
+long newsId1 = _storage.StoreText("news content 1", "news");
+long newsId2 = _storage.StoreText("news content 2", "news");
 
 //  creating articles docs
-long articleId1 = _store.StoreText("article content 1", "article");
-long articleId2 = _store.StoreText("article content 2", "article");
+long articleId1 = _storage.StoreText("article content 1", "article");
+long articleId2 = _storage.StoreText("article content 2", "article");
 
 //  loading
-Assert.Equal("news content 1", _store.LoadText(newsId1, "news"));
-Assert.Equal("article content 2", _store.LoadText(articleId2, "article"));
+Assert.Equal("news content 1", _storage.LoadText(newsId1, "news"));
+Assert.Equal("article content 2", _storage.LoadText(articleId2, "article"));
 
 
 ```
