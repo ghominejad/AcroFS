@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using Newtonsoft.Json;
 
 // Gita FileSystem Storage
 namespace Acrobit.AcroFS
@@ -50,7 +51,7 @@ namespace Acrobit.AcroFS
 		#region Storing
 		
 		// Storing a binary content 
-		public long  Store(Stream content,   string clusterPath="", StoreOptions options = StoreOptions.None, long id=0, long clusterId=0)
+		public long  StoreStream(Stream content,   string clusterPath="", StoreOptions options = StoreOptions.None, long id=0, long clusterId=0)
 		{
 			// Checking content validation
 			if(content==null)
@@ -83,14 +84,44 @@ namespace Acrobit.AcroFS
 			var stream = content.ToMemoryStream();
 			
 			// Storing to disk
-			var result = Store(stream, clusterPath,options, id, clusterId);
+			var result = StoreStream(stream, clusterPath,options, id, clusterId);
 			
 			stream.Close();			
 			return result;
 		}
-		
-		// Attaching a binary content to a stored item 
-		public  bool  Attach(long storeId, string attachName, Stream attachContent, string clusterPath="", StoreOptions options = StoreOptions.None, long clusterId=0)
+
+		static bool IsSubclassOfRawGeneric(Type generic, Type toCheck)
+		{
+			while (toCheck != null && toCheck != typeof(object))
+			{
+				var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+				if (generic == cur)
+				{
+					return true;
+				}
+				toCheck = toCheck.BaseType;
+			}
+			return false;
+		}
+
+		public long Store<T>(T data, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
+            if (IsSubclassOfRawGeneric(typeof(Stream), typeof(T) ) )
+            {
+                return StoreStream(data as Stream, clusterPath, options, id, clusterId);
+            }
+            else if (typeof(T) == typeof(string))
+            {
+                return StoreText(data as string, clusterPath, options, id, clusterId);
+            }
+
+            var jsonData = JsonConvert.SerializeObject(data);
+            return StoreText(jsonData, clusterPath, options, id, clusterId);
+        }
+
+
+        // Attaching a binary content to a stored item 
+        public bool  AttachStream(long storeId, string attachName, Stream attachContent, string clusterPath="", StoreOptions options = StoreOptions.None, long clusterId=0)
 		{
 			// Checking content validation
 			if(attachContent==null)
@@ -116,12 +147,31 @@ namespace Acrobit.AcroFS
 			var stream = attachContent.ToMemoryStream();
 			
 			// Storing to disk
-			var result = Attach(storeId, attachName, stream,clusterPath,options, clusterId);
+			var result = AttachStream(storeId, attachName, stream,clusterPath,options, clusterId);
 			
 			stream.Close();			
 			return result;
 		}
-		
+
+		public bool Attach<T>(long storeId, string attachName, T attachContent, string clusterPath = "", StoreOptions options = StoreOptions.None, long clusterId = 0)
+		{
+			if (IsSubclassOfRawGeneric(typeof(Stream), typeof(T)))
+			{
+				return AttachStream(storeId, attachName, attachContent as Stream, clusterPath, options, clusterId);
+
+			}
+			else if (typeof(T) == typeof(string))
+			{
+				return AttachText(storeId, attachName, attachContent as string, clusterPath , options, clusterId);
+			}
+
+
+			var jsonData = JsonConvert.SerializeObject(attachContent);
+			return AttachText(storeId, attachName, jsonData, clusterPath, options, clusterId);
+
+		}
+
+
 		// Returns a new store id, may be needed for only attachments
 		public  long GetNewStoreId(string clusterPath="", long clusterId=0 )
 		{
@@ -163,6 +213,15 @@ namespace Acrobit.AcroFS
 			
 			return result;
 		}
+
+       
+        public T Load<T>(long docId, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+			var jsonData = LoadTextUtf8(docId, clusterPath, options, clusterId);
+			return JsonConvert.DeserializeObject<T>(jsonData);
+
+        }
+
         public string LoadText(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = Load(id, clusterPath, options, clusterId);
@@ -174,7 +233,7 @@ namespace Acrobit.AcroFS
             return result;
         }
             // Loading a binary attached item 
-        public  Stream LoadAttach(long id, string attachName, string clusterPath="", LoadOptions options = LoadOptions.None, long clusterId=0)
+        public  Stream LoadStreamAttachment(long id, string attachName, string clusterPath="", LoadOptions options = LoadOptions.None, long clusterId=0)
 		{
 			// Optaining pathes
 			string hashedPath = _core.GetHashedPath(id, clusterId, clusterPath);
@@ -190,7 +249,7 @@ namespace Acrobit.AcroFS
 			
 			return content;
 		}
-        public List<Stream> LoadAttachs(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public List<Stream> LoadStreamAttachments(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             // Optaining pathes
             string hashedPath = _core.GetHashedPath(id, clusterId, clusterPath);
@@ -212,11 +271,11 @@ namespace Acrobit.AcroFS
 
             return contents;
         }
-        public List<string> LoadTextAttachs(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public List<string> LoadTextAttachments(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var list = new List<string>();
 
-            var streamList = LoadAttachs(id, clusterPath, options, clusterId);
+            var streamList = LoadStreamAttachments(id, clusterPath, options, clusterId);
          
             foreach(var stream in streamList)
             {
@@ -228,9 +287,9 @@ namespace Acrobit.AcroFS
             return list;
 
         }
-        public  string LoadTextAttach(long id, string attachName, string clusterPath="", LoadOptions options = LoadOptions.None,long clusterId=0)
+        public  string LoadTextAttachment(long id, string attachName, string clusterPath="", LoadOptions options = LoadOptions.None,long clusterId=0)
 		{
-			var stream = LoadAttach( id,  attachName,  clusterPath,options,  clusterId);
+			var stream = LoadStreamAttachment( id,  attachName,  clusterPath,options,  clusterId);
 			if(stream==null) return null;
 
             // Converting to utf8 text
@@ -242,9 +301,9 @@ namespace Acrobit.AcroFS
 		}
 
         // Loading a utf8 text attached item 
-        public string LoadTextAttachUtf8(long id, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public string LoadTextAttachmentUtf8(long id, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
-            var stream = LoadAttach(id, attachName, clusterPath, options, clusterId);
+            var stream = LoadStreamAttachment(id, attachName, clusterPath, options, clusterId);
             if (stream == null) return null;
 
             // Converting to utf8 text
@@ -254,13 +313,37 @@ namespace Acrobit.AcroFS
             return result;
 
         }
-        #endregion
+		public T LoadAttachment<T>(long id, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+		{
+			var jsonData = LoadTextAttachmentUtf8(id, attachName, clusterPath, options, clusterId);
+			if (jsonData == null) throw new Exception("The attachment can't be loaded!");
+
+			return JsonConvert.DeserializeObject<T>(jsonData);
+
+		}
+
+		public IList<T> LoadAttachments<T>(long id, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+		{
+			var list = new List<T>();
+
+			var jsonList = LoadTextAttachments(id, clusterPath, options, clusterId);
+
+			foreach (var jsonData in jsonList)
+			{
+				list.Add(JsonConvert.DeserializeObject<T>(jsonData));
+			}
+
+			return list;
+
+		}
+
+		#endregion
 
 
-        #region Removing
+		#region Removing
 
-        // Loading a binary content 
-        public  void Remove(long id, string clusterPath="", long clusterId=0)
+		// Loading a binary content 
+		public void Remove(long id, string clusterPath="", long clusterId=0)
 		{
 			
 			// Optaining pathes
@@ -277,7 +360,7 @@ namespace Acrobit.AcroFS
 		
 		 int ccc=0;
 		// Loading a binary attached item 
-		public  void RemoveAttach(long id, string attachName, string clusterPath="", long clusterId=0)
+		public  void RemoveAttachment(long id, string attachName, string clusterPath="", long clusterId=0)
 		{
 		
 		

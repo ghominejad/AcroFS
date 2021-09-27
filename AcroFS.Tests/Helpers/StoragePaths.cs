@@ -25,7 +25,7 @@ namespace Acrobit.AcroFS.Tests.Helpers
                 var root = Path.Combine(
                     Directory.GetCurrentDirectory(),
                     "Data",
-                    "default-store");
+                    "default-store/");
 
                 return root;
             }

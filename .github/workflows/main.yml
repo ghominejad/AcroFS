@@ -1,0 +1,20 @@
+name: acrofs-project
+on:
+  push:
+    branches: 
+     - test
+     - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Side by Side testing
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          #dotnet-version: '5.0.x'
+          dotnet-version: '6.0.x'
+          include-prerelease: true
+      - run: dotnet test Acrobit.AcroFS
+      - run: dotnet test AcroFS.Tests

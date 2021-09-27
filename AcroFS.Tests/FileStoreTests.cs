@@ -2,6 +2,7 @@
 using Moq;
 using Xunit;
 using Acrobit.AcroFS.Tests.Helpers;
+using AcroFS.Tests;
 
 namespace Acrobit.AcroFS.Tests
 {
@@ -58,12 +59,13 @@ namespace Acrobit.AcroFS.Tests
             // store attachments
             _store.AttachText(docId, "attach-name-1", "attachment content 1");
             _store.AttachText(docId, "attach-name-2", "attachment content 2");
+            //_store.Attach(docId, "attach-name-2", "attachment content 2");
 
             // retrive attachments
-            Assert.Equal("attachment content 1", _store.LoadTextAttach(docId, "attach-name-1"));
-            Assert.Equal("attachment content 2", _store.LoadTextAttach(docId, "attach-name-2"));
+            Assert.Equal("attachment content 1", _store.LoadTextAttachment(docId, "attach-name-1"));
+            Assert.Equal("attachment content 2", _store.LoadTextAttachment(docId, "attach-name-2"));
 
-            var contents = _store.LoadTextAttachs(docId);
+            var contents = _store.LoadTextAttachments(docId);
 
             Assert.Equal(2, contents.Count);
             Assert.Equal("attachment content 1", contents[0] );
@@ -136,7 +138,26 @@ namespace Acrobit.AcroFS.Tests
             Assert.True(stream.Length < text.Length);
 
         }
+        [Fact]
+        public void ObjectStoreTests()
+        {
+            var _store = FileStore.GetStore();
 
+            var data = new SimpleModel
+            {
+                Name = "hassan",
+                Email = "ghominejad@gmail.com"
+            };
+            //  creating new doc 
+            long docId = _store.Store(data);
+            
+            // comparing stream length and decompressed length
+            var loadedData = _store.Load<SimpleModel>(docId);
+
+            Assert.Equal(loadedData.Email, data.Email);
+            Assert.Equal(loadedData.Name, data.Name);
+
+        }
 
         [Fact]
         public void SubStorageTests()

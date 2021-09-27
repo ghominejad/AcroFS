@@ -2,8 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Acrobit.AcroFS</RootNamespace>
     <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>Acrobit.AcroFS</PackageId>
+    <Version>2.1.1</Version>
+    <Authors>ghominejad</Authors>
+    <Company>Gita</Company>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
 
 </Project>
+
+
+

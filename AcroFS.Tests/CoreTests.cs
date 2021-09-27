@@ -48,7 +48,9 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void DefaultRepository_Tests()
         {
+
             var core = new Core();
+
             Assert.Equal(StoragePaths.DefaultFolder, core.GetDefaultRepositoryPath());
         }
 
