@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Acrobit.AcroFS", "Acrobit.AcroFS\Acrobit.AcroFS.csproj", "{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Acrobit.AcroFS", "Acrobit.AcroFS\Acrobit.AcroFS.csproj", "{ACD4F273-E199-482D-9FAE-0D473C434CC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Acrobit.AcroFS.Tests", "Acrobit.AcroFS.Tests\Acrobit.AcroFS.Tests.csproj", "{C6E9647D-C531-4E83-8701-C8F18B2956B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcroFS.Tests", "AcroFS.Tests\AcroFS.Tests.csproj", "{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C7B4651-1B7E-40C2-8A0F-F399D4F8BFE6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C6E9647D-C531-4E83-8701-C8F18B2956B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C6E9647D-C531-4E83-8701-C8F18B2956B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C6E9647D-C531-4E83-8701-C8F18B2956B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C6E9647D-C531-4E83-8701-C8F18B2956B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACD4F273-E199-482D-9FAE-0D473C434CC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACD4F273-E199-482D-9FAE-0D473C434CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACD4F273-E199-482D-9FAE-0D473C434CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACD4F273-E199-482D-9FAE-0D473C434CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

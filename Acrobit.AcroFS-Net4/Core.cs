@@ -11,7 +11,7 @@ namespace Acrobit.AcroFS
 	public class Core
 	{
 		
-		public IStoreConfig _config = null;
+		public IStoreConfig _config;
         string _repositoryRoot = null;
 
         public string RepositoryRoot{
@@ -20,35 +20,10 @@ namespace Acrobit.AcroFS
 				return _repositoryRoot;
 			}		
 		}
+		
 
-		public string GetDefaultRepositoryPath()
+        public Core(string repositoryRoot)
         {
-			var defaultPath = Path.Combine(
-				AppDomain.CurrentDomain.BaseDirectory,
-				"Data",
-				"default-store/"
-				);
-
-
-
-
-			return defaultPath;
-
-		}
-
-		public Core()
-		{
-			var repositoryRoot = GetDefaultRepositoryPath();
-			if (!Directory.Exists(repositoryRoot))
-				Directory.CreateDirectory(repositoryRoot);
-
-			_repositoryRoot = repositoryRoot;
-		}
-
-		public Core(string repositoryRoot)
-        {
-
-
             if (!Directory.Exists(repositoryRoot))
                 throw new RepositoryNotFoundException();
 

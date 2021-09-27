@@ -16,9 +16,8 @@ namespace Acrobit.AcroFS
         static Dictionary<string , FileStore> stores = new Dictionary<string, FileStore>();
 
         private Core _core = null;
-        public  static FileStore GetStore(string repositoryRoot = null)
+        public  static FileStore GetStore(string repositoryRoot)
         {
-
             if (stores.ContainsKey(repositoryRoot))
                 return stores[repositoryRoot];
 
@@ -27,22 +26,8 @@ namespace Acrobit.AcroFS
             stores[repositoryRoot] = filestore;
 
             return filestore;
-		}
-		public static FileStore GetStore()
-		{
-
-			if (stores.ContainsKey("default"))
-				return stores["default"];
-
-			var core = new Core();
-			var filestore = new FileStore(core);
-			stores["default"] = filestore;
-
-			return filestore;
-		}
-				
-
-		public FileStore(Core core)
+        }
+        public FileStore(Core core)
         {
             _core = core;
         }
