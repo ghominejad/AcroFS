@@ -16,5 +16,15 @@ jobs:
           #dotnet-version: '5.0.x'
           dotnet-version: '6.0.x'
           include-prerelease: true
-      - run: dotnet test Acrobit.AcroFS
+
+      - run: dotnet build Acrobit.AcroFS
+
       - run: dotnet test AcroFS.Tests
+
+      - name: Create the package
+        run: dotnet pack --configuration Release Acrobit.AcroFS
+
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push */bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+            NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

@@ -59,6 +59,19 @@ StorageRoot\...\17
 # Examples
 <br/>
 
+- **Store and Load Models** :
+``` csharp
+// Get the default store ( `Data/default-store` )
+var _repository = FileStore.GetStore();
+
+// store    
+long docId = _repository.Store<MyModel>(model1);
+
+// load
+var theModel = _repository.Load<MyModel>(docId));
+Assert.Equal("name@mail.com", theModel.Email);
+```
+
 - **Store and Load Texts** :
 ``` csharp
 // defining the store in a custom location
@@ -70,6 +83,7 @@ long docId = _repository.StoreText("the content");
 // load
 Assert.Equal("the content", _repository.LoadText(docId));
 ```
+
  <br/>
 
 - **Store and load Streams** :
