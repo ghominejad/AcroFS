@@ -5,7 +5,14 @@ VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Acrobit.AcroFS", "Acrobit.AcroFS\Acrobit.AcroFS.csproj", "{ACD4F273-E199-482D-9FAE-0D473C434CC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcroFS.Tests", "AcroFS.Tests\AcroFS.Tests.csproj", "{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AcroFS.Tests", "AcroFS.Tests\AcroFS.Tests.csproj", "{3EFCAAAF-3DD0-45AC-861F-55A2751025B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{A138D00A-377F-4C97-9BFD-CDB0587829F2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GithubWorkflows", "GithubWorkflows", "{5E54A63E-0C0E-4C2B-908C-B4C4FF8BF050}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\main.yml = .github\workflows\main.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +31,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5E54A63E-0C0E-4C2B-908C-B4C4FF8BF050} = {A138D00A-377F-4C97-9BFD-CDB0587829F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2AC9A8BD-18E8-4B5F-A92C-8A45AE257189}
