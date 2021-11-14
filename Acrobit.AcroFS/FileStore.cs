@@ -47,24 +47,44 @@ namespace Acrobit.AcroFS
         {
             _core = core;
         }
-        
+
 		#region Storing
-		
+
 		// Storing a binary content 
-		public long  StoreStream(Stream content,   string clusterPath="", StoreOptions options = StoreOptions.None, long id=0, long clusterId=0)
-		{
+		public long StoreStream(Stream content, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
 			// Checking content validation
-			if(content==null)
+			if (content == null)
 				return 0;
-			
+
 			// Generating Store Id if needed
-			long storeId=id;
-			if(storeId==0)			
+			long storeId = id;
+			if (storeId == 0)
 				storeId = _core.GetNewStoreId(clusterId, clusterPath);
-			
+
 			// full path of the file
 			string hashedPath =
 				_core.GetHashedPath(storeId, clusterId, clusterPath);
+
+			// Creating top directories
+			_core.PrepaireDirectoryByFilename(hashedPath);
+
+			// Saving stream to the file 
+			_core.SaveStreamToFile(hashedPath, content,
+								  options == StoreOptions.Compress);
+
+			// Returns new store id
+			return storeId;
+		}
+		public void StoreStreamByKey(string key, Stream content,   string clusterPath="", StoreOptions options = StoreOptions.None, long clusterId=0)
+		{
+			// Checking content validation
+			if(content==null || string.IsNullOrEmpty(key))
+				throw new Exception("Content or key not valid!");
+
+			// full path of the file
+			string hashedPath =
+				_core.GetHashedPath(key, clusterId, clusterPath);
 			
 			// Creating top directories
 			_core.PrepaireDirectoryByFilename(hashedPath);
@@ -73,8 +93,6 @@ namespace Acrobit.AcroFS
 			_core.SaveStreamToFile(hashedPath, content, 
 			                      options== StoreOptions.Compress);
 			
-			// Returns new store id
-			return storeId;
 		}
 		
 		// Storing a utf8 text content 
@@ -88,6 +106,19 @@ namespace Acrobit.AcroFS
 			
 			stream.Close();			
 			return result;
+		}
+		public void StoreTextByKey(string key, string content, string clusterPath = "", StoreOptions options = StoreOptions.None, long clusterId = 0)
+		{
+			if (content == null || string.IsNullOrEmpty(key))
+				throw new Exception("Content or key not valid!");
+
+			// Converting utf8 text to Memory Stream
+			var stream = content.ToMemoryStream();
+
+			// Storing to disk
+			StoreStreamByKey(key, stream, clusterPath, options, clusterId);
+
+			stream.Close();
 		}
 
 		static bool IsSubclassOfRawGeneric(Type generic, Type toCheck)
@@ -119,9 +150,25 @@ namespace Acrobit.AcroFS
             return StoreText(jsonData, clusterPath, options, id, clusterId);
         }
 
+		public void StoreByKey<T>(string key,T data,string clusterPath = "",  StoreOptions options = StoreOptions.None,  long clusterId = 0)
+		{
+			if (IsSubclassOfRawGeneric(typeof(Stream), typeof(T)))
+			{
+				StoreStreamByKey(key, data as Stream, clusterPath, options, clusterId);
+			}
+			else if (typeof(T) == typeof(string))
+			{
+				StoreTextByKey(key, data as string, clusterPath, options, clusterId);
 
-        // Attaching a binary content to a stored item 
-        public bool  AttachStream(long storeId, string attachName, Stream attachContent, string clusterPath="", StoreOptions options = StoreOptions.None, long clusterId=0)
+			}
+
+			var jsonData = JsonConvert.SerializeObject(data);
+			StoreTextByKey(key, jsonData, clusterPath, options, clusterId);
+		}
+
+
+		// Attaching a binary content to a stored item 
+		public bool  AttachStream(long storeId, string attachName, Stream attachContent, string clusterPath="", StoreOptions options = StoreOptions.None, long clusterId=0)
 		{
 			// Checking content validation
 			if(attachContent==null)
@@ -200,7 +247,25 @@ namespace Acrobit.AcroFS
 			
 			return content;
 		}
-		
+		public Stream Load(string docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+		{
+
+			// Optaining pathes
+			string hashedPath = _core.GetHashedPath(docKey, clusterId, clusterPath);
+
+			// Chekcking for existing 
+			if (!System.IO.File.Exists(hashedPath))
+				throw new Exception("Document not found!");
+
+			// Load file from disk
+			Stream content = _core.LoadStreamFromFile(hashedPath,
+						   options == LoadOptions.Decompress);
+
+
+			return content;
+		}
+
+
 		// Loading a utf8 text content
 		public  string LoadTextUtf8(long id, string clusterPath="",LoadOptions options = LoadOptions.None, long clusterId=0)
 		{
@@ -213,11 +278,28 @@ namespace Acrobit.AcroFS
 			
 			return result;
 		}
+		public string LoadTextUtf8(string key, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+		{
+			var stream = Load(key, clusterPath, options, clusterId);
+			if (stream == null) return null;
 
-       
-        public T Load<T>(long docId, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+			// Converting to utf8 text
+			string result = stream.ToUtf8String();
+			stream.Close();
+
+			return result;
+		}
+
+		public T Load<T>(string docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+		{
+			var jsonData = LoadTextUtf8(docKey, clusterPath, options, clusterId);
+			return JsonConvert.DeserializeObject<T>(jsonData);
+
+		}
+
+		public T Load<T>(long docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
-			var jsonData = LoadTextUtf8(docId, clusterPath, options, clusterId);
+			var jsonData = LoadTextUtf8(docKey, clusterPath, options, clusterId);
 			return JsonConvert.DeserializeObject<T>(jsonData);
 
         }

@@ -76,7 +76,28 @@ namespace Acrobit.AcroFS
 			
 			return hashed;
 		}
-		
+		public string GenerateHashedPath(string val)
+		{
+			if (string.IsNullOrEmpty(val))
+				return "";
+
+			val = val.PadLeft(10, '0');
+			
+			if(val.Length%2 == 1) val = "_" + val;
+			
+			string hashed = "";
+			for (int i = 0; i < val.Length; i += 2)
+			{
+				hashed += "$" + val.Substring(i, 2);
+
+				if (i + 2 < val.Length)
+					hashed += "/";
+			}
+
+			return hashed;
+		}
+
+
 		public ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>> dicClusters = 
 			new ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>>();
 	
@@ -101,7 +122,29 @@ namespace Acrobit.AcroFS
 			return path;
 			
 		}
-        public string GetHashedPath(long id,  string clusterPath)
+		public string GetHashedPath(string id, long clusterId, string clusterPath)
+		{
+
+			string left = GenerateHashedPath(clusterId);
+
+			string right = GenerateHashedPath(id);
+
+			string path = RepositoryRoot;
+
+			if (left.Length > 0)
+				path += left + "/";
+
+			if (clusterPath.Length > 0)
+				path += clusterPath + "/";
+
+			if (right.Length > 0)
+				path += right;
+
+			return path;
+
+		}
+
+		public string GetHashedPath(long id,  string clusterPath)
         {
             return GetHashedPath(id, 0, clusterPath);
         }
@@ -110,7 +153,17 @@ namespace Acrobit.AcroFS
 		{
 			return GetHashedPath(0, clusterId, clusterPath);
 		}
-		
+
+
+
+
+		public string GetHashedPath(string id, string clusterPath)
+		{
+			return GetHashedPath(id, 0, clusterPath);
+		}
+
+
+
 		public long GetNewStoreId(long clusterId, string clusterPath)
 		{
 			string clusterhashedPath = GetClusterHashedPath(clusterId, clusterPath);

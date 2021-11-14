@@ -145,10 +145,10 @@ namespace Acrobit.AcroFS.Tests
                 Name = "hassan",
                 Email = "ghominejad@gmail.com"
             };
+
             //  creating new doc 
             long docId = _store.Store(data);
             
-            // comparing stream length and decompressed length
             var loadedData = _store.Load<SimpleModel>(docId);
 
             Assert.Equal(loadedData.Email, data.Email);
@@ -192,6 +192,32 @@ namespace Acrobit.AcroFS.Tests
             Assert.Equal("health news content 1", _store.LoadText(newsId2, "news/health"));
 
         }
+
+        [Fact]
+        public void Store_By_Key()
+        {
+            var _store = FileStore.GetStore();
+
+            var data = new SimpleModel
+            {
+                Name = "hassan",
+                Email = "ghominejad@gmail.com"
+            };
+
+
+            var key = "SimpleModel";
+
+            // store by a key
+            _store.StoreByKey(key, data);
+
+            // load by a key
+            var loadedData = _store.Load<SimpleModel>(key);
+
+            Assert.Equal(loadedData.Email, data.Email);
+            Assert.Equal(loadedData.Name, data.Name);
+
+        }
+
 
     }
 }

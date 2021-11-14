@@ -77,5 +77,27 @@ namespace Acrobit.AcroFS.Tests
             Assert.Equal($"{StoragePath}news/$00/$00/$00/$00/$05",
                 core.GetHashedPath(docId, "news"));
         }
+
+        [Fact]
+        public void String_Key_Hashed_Path_Generateor_Test()
+        {
+            var core = new Core(StoragePath);
+
+            // zero should return Emply
+            Assert.Equal("", core.GenerateHashedPath(""));
+
+            // docId "custom_key"
+            Assert.Equal("$cu/$st/$om/$_k/$ey", core.GenerateHashedPath("custom_key"));
+
+
+           
+
+            var docKey = "custom_key"; // $cu/$st/$om/$_k/$ey
+            var path = core.GetHashedPath(docKey, "news");
+
+            Assert.Equal($"{StoragePath}news/$cu/$st/$om/$_k/$ey",
+                core.GetHashedPath(docKey, "news"));
+
+        }
     }
 }

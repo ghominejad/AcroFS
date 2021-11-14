@@ -104,6 +104,15 @@ long docId = _repository.Store(mymodel);
 var myModel = _repository.Load<MyModel>(docId));
 ```
 
+- **Store and load by string key** :
+``` csharp
+var key ="MyModel";
+// store
+_store.StoreByKey(key, data);
+
+// load
+var myModel = _repository.Load<MyModel>(key));
+```
 <br/>
 
 - **Attachments** :
