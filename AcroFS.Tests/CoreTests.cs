@@ -99,5 +99,27 @@ namespace Acrobit.AcroFS.Tests
                 core.GetHashedPath(docKey, "news"));
 
         }
+
+        [Fact]
+        public void Hashed_Path_Generateor_Generates_Simple_Path_Option_Test()
+        {
+            var core = new Core(StoragePath, new StoreConfig { UseSimplePath = true});
+
+            // zero should return Emply
+            Assert.Equal("", core.GenerateHashedPath(""));
+
+            var docKey = "custom_key"; 
+            Assert.Equal("custom_key", core.GenerateHashedPath(docKey));
+
+            var path = core.GetHashedPath(docKey, "news");
+
+            Assert.Equal($"{StoragePath}news/custom_key",
+                core.GetHashedPath(docKey, "news"));
+
+
+
+
+        }
+
     }
 }

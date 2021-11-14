@@ -11,8 +11,8 @@ namespace Acrobit.AcroFS
 	public class Core
 	{
 		
-		public IStoreConfig _config = null;
-        string _repositoryRoot = null;
+		public StoreConfig _config;
+        string _repositoryRoot;
 
         public string RepositoryRoot{
 			get{
@@ -36,16 +36,17 @@ namespace Acrobit.AcroFS
 
 		}
 
-		public Core()
+		public Core(StoreConfig config=null)
 		{
 			var repositoryRoot = GetDefaultRepositoryPath();
 			if (!Directory.Exists(repositoryRoot))
 				Directory.CreateDirectory(repositoryRoot);
 
 			_repositoryRoot = repositoryRoot;
-		}
+            _config = config;
+        }
 
-		public Core(string repositoryRoot)
+		public Core(string repositoryRoot, StoreConfig config=null)
         {
 
 
@@ -53,6 +54,7 @@ namespace Acrobit.AcroFS
                 throw new RepositoryNotFoundException();
 
             _repositoryRoot = repositoryRoot;
+            _config = config;
         }
 
         public string GenerateHashedPath(long val)
@@ -80,6 +82,9 @@ namespace Acrobit.AcroFS
 		{
 			if (string.IsNullOrEmpty(val))
 				return "";
+
+			if (_config != null && _config.UseSimplePath)
+				return val;
 
 			val = val.PadLeft(10, '0');
 			

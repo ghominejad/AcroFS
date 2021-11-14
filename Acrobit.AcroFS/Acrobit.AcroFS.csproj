@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -8,12 +8,19 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Acrobit.AcroFS</PackageId>
-    <Version>2.1.2</Version>
+    <Version>2.1.3</Version>
     <Authors>ghominejad</Authors>
     <Company>Gita</Company>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Helpers\**" />
+    <EmbeddedResource Remove="Helpers\**" />
+    <None Remove="Helpers\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <!--<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />-->
   </ItemGroup>
 
 </Project>
