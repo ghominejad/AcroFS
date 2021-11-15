@@ -30,7 +30,7 @@ namespace Acrobit.AcroFS.Tests
             Assert.Equal("the content", _store.LoadText(docId));
 
             // any data inside default folder?
-            var defaultPath = core.GetDefaultRepositoryPath();
+            var defaultPath = Core.GetDefaultRepositoryPath();
             Assert.True(Directory.GetDirectories(defaultPath).Length > 0);
 
         }
@@ -123,7 +123,8 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void GzipCompressionTest()
         {
-            var _store = FileStore.GetStore(StoragePath1);
+            var _store = FileStore.GetStore()
+                .Root(StoragePath1);
 
             //  creating new doc 
             long docId = _store.StoreText(SampleTexts.Text1, options: StoreOptions.Compress);
@@ -196,7 +197,8 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void Store_By_Key()
         {
-            var _store = FileStore.GetStore();
+            var _store = FileStore.GetStore()
+                .UseSimplePath();
 
             var data = new SimpleModel
             {
@@ -205,7 +207,33 @@ namespace Acrobit.AcroFS.Tests
             };
 
 
-            var key = "SimpleModel";
+            var key = "SimpleModel.json";
+
+            // store by a key
+            _store.StoreByKey(key, data);
+
+            // load by a key
+            var loadedData = _store.Load<SimpleModel>(key);
+
+            Assert.Equal(loadedData.Email, data.Email);
+            Assert.Equal(loadedData.Name, data.Name);
+
+        }
+
+        [Fact]
+        public void Use_Simple_Path_Instead_Of_Hashed_Path_As_An_Option()
+        {
+            var _store = FileStore.GetStore()
+                .UseSimplePath();
+
+            var data = new SimpleModel
+            {
+                Name = "hassan",
+                Email = "ghominejad@gmail.com"
+            };
+
+
+            var key = "SimpleModel.json";
 
             // store by a key
             _store.StoreByKey(key, data);

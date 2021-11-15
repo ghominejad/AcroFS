@@ -17,38 +17,41 @@ namespace Acrobit.AcroFS
         static Dictionary<string , FileStore> stores = new Dictionary<string, FileStore>();
 
         private Core _core = null;
-        public  static FileStore GetStore(string repositoryRoot = null)
+        public  static FileStore GetStore(string repositoryRoot = null, StoreConfig config = null)
         {
+			if (string.IsNullOrEmpty(repositoryRoot))
+				repositoryRoot = Core.GetDefaultRepositoryPath();
 
-            if (stores.ContainsKey(repositoryRoot))
+			if (repositoryRoot!=null && stores.ContainsKey(repositoryRoot))
                 return stores[repositoryRoot];
 
-            var core = new Core(repositoryRoot);
+            var core = new Core(repositoryRoot, config);
             var filestore = new FileStore(core);
+			
             stores[repositoryRoot] = filestore;
 
             return filestore;
 		}
-		public static FileStore GetStore()
-		{
+        //public static FileStore GetStore(StoreConfig config = null)
+        //{
 
-			if (stores.ContainsKey("default"))
-				return stores["default"];
+        //    if (stores.ContainsKey("default"))
+        //        return stores["default"];
 
-			var core = new Core();
-			var filestore = new FileStore(core);
-			stores["default"] = filestore;
+        //    var core = new Core(config);
+        //    var filestore = new FileStore(core);
+        //    stores["default"] = filestore;
 
-			return filestore;
-		}
-				
+        //    return filestore;
+        //}
 
-		public FileStore(Core core)
+
+        public FileStore(Core core)
         {
             _core = core;
         }
 
-		#region Storing
+		#region Save
 
 		// Storing a binary content 
 		public long StoreStream(Stream content, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
@@ -228,7 +231,7 @@ namespace Acrobit.AcroFS
 		#endregion
 		
 		
-		#region Loading
+		#region Load
 		// Loading a binary content 
 		public  Stream Load(long id, string clusterPath="", LoadOptions options = LoadOptions.None, long clusterId=0)
 		{
@@ -421,8 +424,7 @@ namespace Acrobit.AcroFS
 
 		#endregion
 
-
-		#region Removing
+		#region Remove
 
 		// Loading a binary content 
 		public void Remove(long id, string clusterPath="", long clusterId=0)
@@ -469,11 +471,25 @@ namespace Acrobit.AcroFS
 			//ccc++;
 		
 		}
-		
+
+		#endregion
+
+
+		#region Options
+		public FileStore UseSimplePath(bool useSimplePath = true)
+		{
+			_core.UseSimplePath(useSimplePath);
+			return this;
+		}
+		public FileStore Root(string repositoryRoot)
+		{
+			_core.Root(repositoryRoot);
+			return this;
+		}
 		#endregion
 	}
-	
-	// Future options :
-		// Load by gfs path : /clusterId/clusterPath/fileid/attachName/options
+
+    // Future options :
+    // Load by gfs path : /clusterId/clusterPath/fileid/attachName/options
 }
 

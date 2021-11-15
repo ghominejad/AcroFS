@@ -113,6 +113,20 @@ _store.StoreByKey(key, data);
 // load
 var myModel = _repository.Load<MyModel>(key));
 ```
+
+- **Use simple path instead of hashed path ** :
+``` csharp
+var _repository = FileStore.GetStore()
+    .UseSimplePath();
+
+var key ="MyModel.json";
+// store
+_store.StoreByKey(key, data);
+
+// load
+var myModel = _repository.Load<MyModel>(key));
+```
+
 <br/>
 
 - **Attachments** :

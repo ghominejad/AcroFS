@@ -21,7 +21,7 @@ namespace Acrobit.AcroFS
 			}		
 		}
 
-		public string GetDefaultRepositoryPath()
+		public static string GetDefaultRepositoryPath()
         {
 			var defaultPath = Path.Combine(
 				AppDomain.CurrentDomain.BaseDirectory,
@@ -36,37 +36,36 @@ namespace Acrobit.AcroFS
 
 		}
 
-		public Core(StoreConfig config=null)
-		{
-			var repositoryRoot = GetDefaultRepositoryPath();
-			if (!Directory.Exists(repositoryRoot))
-				Directory.CreateDirectory(repositoryRoot);
+		//public Core(StoreConfig config=null)
+		//{
+		//	var repositoryRoot = GetDefaultRepositoryPath();
+		//	if (!Directory.Exists(repositoryRoot))
+		//		Directory.CreateDirectory(repositoryRoot);
 
-			_repositoryRoot = repositoryRoot;
-            _config = config;
-        }
+		//	_repositoryRoot = repositoryRoot;
+  //          _config = config;
+  //      }
 
-		public Core(string repositoryRoot, StoreConfig config=null)
+		public Core(string repositoryRoot=null, StoreConfig config=null)
         {
+			_config = config ?? new StoreConfig
+			{
+				UseSimplePath = false,
+				
+			};
 
-
-            if (!Directory.Exists(repositoryRoot))
-                throw new RepositoryNotFoundException();
-
-            _repositoryRoot = repositoryRoot;
-            _config = config;
+			Root(repositoryRoot);
+			
         }
-
-        public string GenerateHashedPath(long val)
+	
+		public string GenerateHashedPath(long val)
 		{
 			if(val==0)
 				return "";
 			
 			string hex = val.ToString("X");
 			hex=hex.PadLeft(10, '0');
-			//if((hex.Length%2)==1)
-			//	hex="0"+hex;
-			
+
 			string hashed="";
 			for(int i=0; i<hex.Length; i+=2 )
 			{
@@ -342,8 +341,28 @@ namespace Acrobit.AcroFS
 			string folderPath = filename.Substring(0, filename.Length-3);
 			System.IO.Directory.CreateDirectory(folderPath);
 		}
-		
-		
+
+		#region Options
+		public Core UseSimplePath(bool useSimplePath = true)
+		{
+			_config.UseSimplePath = useSimplePath;
+			return this;
+		}
+		public Core Root(string repositoryRoot)
+		{
+			if (string.IsNullOrEmpty(repositoryRoot))
+				repositoryRoot = GetDefaultRepositoryPath();
+
+
+			if (!Directory.Exists(repositoryRoot))
+				Directory.CreateDirectory(repositoryRoot);
+			_repositoryRoot = repositoryRoot;
+
+
+			return this;
+
+		}
+		#endregion
 
 	}
 }

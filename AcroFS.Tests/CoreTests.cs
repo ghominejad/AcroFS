@@ -16,13 +16,6 @@ namespace Acrobit.AcroFS.Tests
         }
 
         [Fact]
-        public void Core_Throws_If_Repository_Path_Not_Exists()
-        {
-            Assert.Throws<RepositoryNotFoundException>(
-                () => new Core("an invalid path"));
-        }
-
-        [Fact]
  
         public void Id_Generateor_Tests()
         {
@@ -51,7 +44,7 @@ namespace Acrobit.AcroFS.Tests
 
             var core = new Core();
 
-            Assert.Equal(StoragePaths.DefaultFolder, core.GetDefaultRepositoryPath());
+            Assert.Equal(StoragePaths.DefaultFolder, Core.GetDefaultRepositoryPath());
         }
 
 
