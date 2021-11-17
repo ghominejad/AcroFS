@@ -35,7 +35,7 @@ var model = _repository.Load<MyModel>("the-key", myModel);
 _memoryCache.Persistent().Set(key, value, TimeSpan.FromMinutes(1));
 
 // get cache
-var found = _cache.TryGetValue(cacheKey, out result);
+var found = _memoryCache.Persistent().TryGetValue(cacheKey, out result);
 
 // get or create
 var cachedResult = await _memoryCache.Persistent().GetOrCreate(cacheKey, async entry =>
