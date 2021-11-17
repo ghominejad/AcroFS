@@ -28,7 +28,7 @@ namespace Acrobit.AcroFS.Tests
         {
             var clock = new TestClock();
             var cache = CreateCache(clock)
-                .Persistant(clock);
+                .Persistent(clock);
 
             var key = "myKey";
             var value = "myValue";
@@ -49,7 +49,7 @@ namespace Acrobit.AcroFS.Tests
 
             // try with persistant cache
             cache = CreateCache(clock)
-                .Persistant(clock);
+                .Persistent(clock);
 
             found = cache.TryGetValue(key, out result);
             Assert.True(found);
@@ -63,7 +63,7 @@ namespace Acrobit.AcroFS.Tests
         {
             var clock = new TestClock();
             var cache = CreateCache(clock)
-                .Persistant(clock);
+                .Persistent(clock);
 
             var key = "myKey";
             var value = "myValue";
@@ -87,7 +87,7 @@ namespace Acrobit.AcroFS.Tests
 
             // try with persistant cache
             cache = CreateCache(clock)
-                .Persistant(clock);
+                .Persistent(clock);
 
             found = cache.TryGetValue(key, out result);
             Assert.False(found);

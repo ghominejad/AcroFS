@@ -25,7 +25,7 @@ var data = _repository.Load(docId);
 
 - Multiple Storage
 - Sub Storages
-- Persistant cache layer for .Net `IMemoryCache`
+- Persistent cache layer for .Net `IMemoryCache`
 - Json Serialization/Deserialization
 - GZip Compression / Decompression for text files
 - Store/Load Objects, Texts and Streams
@@ -190,9 +190,9 @@ Its a persistant layer for `IMemoryCache`
 ## Instantiation
 ``` csharp
 IMemoryCache _memoryCache; // resolve it via .net dependency injection
-var fileCache = _memoryCache.Persistant();
+var fileCache = _memoryCache.Persistent();
 ```
-> There is no overhead on `Persistant()` method so you can use it each time you want to use file cache over memory cache!
+> There is no overhead on `Persistent()` method so you can use it each time you want to use file cache over memory cache!
 ## Create persistant cache with absolute expiration
 ``` csharp
 var key = "myKey";

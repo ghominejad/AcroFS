@@ -169,12 +169,12 @@ namespace Microsoft.Extensions.Caching.Memory
 
         }
 
-        public static FileCache Persistant(this IMemoryCache cache)
+        public static FileCache Persistent(this IMemoryCache cache)
         {
             return new FileCache(new SystemClock(), cache);
         }
 
-        public static FileCache Persistant(this IMemoryCache cache, ISystemClock clock)
+        public static FileCache Persistent(this IMemoryCache cache, ISystemClock clock)
         {
             return new FileCache(clock, cache);
         }
