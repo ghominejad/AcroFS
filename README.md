@@ -1,17 +1,17 @@
 
-### Cross-platform, small and super fast file-based storage library
+## Cross-platform, small and super fast file-based storage library
 
-`AcroFS` is a very small, cross-platform and super fast file system based storage library that can manage huge amount of files on your file system.
+`AcroFS` is a tiny, cross-platform and super fast file system based storage library that can manage huge amount of files on your file system.
 
-Its also provides a persistant caching layer for .Net `IMemoryCache`. Just use `_fileCache = _memoryCache.Persisant()` to use file cache and memory cache together!
+It also provides a persistent caching layer for .Net `IMemoryCache` to benefit both file caching and memory caching together!
 
 
-
+## File store quick examples :
 ``` csharp
-
 // Get the default store
 var _repository = FileStore.CreateStore();
-
+```
+``` csharp
 // store
 var docId = _repository.Store(data);
 
@@ -20,6 +20,34 @@ var data = _repository.Load(docId);
 
 ```
 
+``` csharp
+// store models with a custpm key
+_repository.Store("the-key", myModel);
+
+// load model
+var model = _repository.Load<MyModel>("the-key", myModel);
+
+```
+
+## Persistent cache quick examples : 
+``` csharp
+// set cache
+_memoryCache.Persistent().Set(key, value, TimeSpan.FromMinutes(1));
+
+// get cache
+var found = _cache.TryGetValue(cacheKey, out result);
+
+// get or create
+var cachedResult = await _memoryCache.Persistent().GetOrCreate(cacheKey, async entry =>
+{
+    entry.SlidingExpiration = TimeSpan.FromSeconds(10);
+
+    var result = await loadMyDataAsync();
+    
+    return result;
+});
+
+```
 
 # Features
 
@@ -28,7 +56,7 @@ var data = _repository.Load(docId);
 - Persistent cache layer for .Net `IMemoryCache`
 - Json Serialization/Deserialization
 - GZip Compression / Decompression for text files
-- Store/Load Objects, Texts and Streams
+- Store/Load Models, Objects, Texts and Streams
 - Store/Load Attachments related to a doc
 - Assigns unique ids automatically
 - .Net Core / Mono / Linux / Mac Support 
@@ -186,23 +214,23 @@ StorageRoot\article\...\01
 ````
 
 # FileCache
-Its a persistant layer for `IMemoryCache`
+Its a persistent layer for `IMemoryCache`
 ## Instantiation
 ``` csharp
 IMemoryCache _memoryCache; // resolve it via .net dependency injection
-var fileCache = _memoryCache.Persistent();
+FileCache _cache = memoryCache.Persistent();
 ```
-> There is no overhead on `Persistent()` method so you can use it each time you want to use file cache over memory cache!
-## Create persistant cache with absolute expiration
+> There is no overhead on `Persistent()` method so you can use it each time you want to use file cache over memory cache : `_memoryCache.Persistent().Set(...)` or `_memoryCache.Persistent().GetOrCreate(...)`
+## Create persistent cache with absolute expiration
 ``` csharp
 var key = "myKey";
 var value = "myValue";
 
 // store into both memory and file together
-fileCache.Set(key, value, TimeSpan.FromMinutes(1));;
+_cache.Set(key, value, TimeSpan.FromMinutes(1));;
 
 // retrive the cached value
-var found = cache.TryGetValue(key, out result);
+var found = _cache.TryGetValue(key, out result);
 
 ``` 
 > If the cached item wasn't found inside the memory, then the file cache will be loaded.
@@ -215,11 +243,11 @@ var found = cache.TryGetValue(key, out result);
 var myModel = new MyModel(...);
 
 // store into both memory and file together
-fileCache.Set(cacheKey, myModel, TimeSpan.FromMinutes(1));;
+_cache.Set(cacheKey, myModel, TimeSpan.FromMinutes(1));;
 
 // retrive the cached value
 MyModel result;
-var found = cache.TryGetValue(cacheKey, out result);
+var found = _cache.TryGetValue(cacheKey, out result);
 
 ``` 
 ## GetOrCreate

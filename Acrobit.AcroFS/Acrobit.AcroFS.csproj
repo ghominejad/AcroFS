@@ -8,7 +8,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Acrobit.AcroFS</PackageId>
-    <Version>2.1.11</Version>
+    <Version>2.1.12</Version>
     <Authors>ghominejad</Authors>
     <Company>Gita</Company>
   </PropertyGroup>
