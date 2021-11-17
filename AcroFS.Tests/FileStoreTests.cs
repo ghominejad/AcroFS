@@ -23,7 +23,7 @@ namespace Acrobit.AcroFS.Tests
         public void GetStore_Should_Return_DefaultStore_If_Path_Not_Specified()
         {
             var core = new Core();
-            var _store = FileStore.GetStore();
+            var _store = FileStore.CreateStore();
             long docId = _store.StoreText("the content");
 
             Assert.Equal(1, docId);
@@ -40,7 +40,7 @@ namespace Acrobit.AcroFS.Tests
         {
             var rootPath = StoragePaths.CreateStorageFolder();
 
-            var _store = FileStore.GetStore(rootPath);
+            var _store = FileStore.CreateStore(rootPath);
             
             long docId = _store.StoreText("the content");
 
@@ -51,7 +51,7 @@ namespace Acrobit.AcroFS.Tests
         {
             
 
-            var _store = FileStore.GetStore(StoragePath1);
+            var _store = FileStore.CreateStore(StoragePath1);
 
             // create doc
             long docId = _store.StoreText("the content");
@@ -73,8 +73,8 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void MultipleStoreTest()
         {
-            var _storeOne = FileStore.GetStore(StoragePath1);
-            var _storeTwo = FileStore.GetStore(StoragePath2);
+            var _storeOne = FileStore.CreateStore(StoragePath1);
+            var _storeTwo = FileStore.CreateStore(StoragePath2);
 
             long docId1 = _storeOne.StoreText("content 1");
             long docId2 = _storeTwo.StoreText("content 2");
@@ -87,8 +87,8 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void MultipleStore_Should_Generate_Own_Ids()
         {
-            var _storeOne = FileStore.GetStore(StoragePath1);
-            var _storeTwo = FileStore.GetStore(StoragePath2);
+            var _storeOne = FileStore.CreateStore(StoragePath1);
+            var _storeTwo = FileStore.CreateStore(StoragePath2);
 
             long docId1 = _storeOne.StoreText("content 1");
             long docId2 = _storeTwo.StoreText("content 2");
@@ -106,7 +106,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void StreamTest()
         {
-            var _store = FileStore.GetStore(StoragePath1);
+            var _store = FileStore.CreateStore(StoragePath1);
 
             long docId;
 
@@ -123,7 +123,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void GzipCompressionTest()
         {
-            var _store = FileStore.GetStore()
+            var _store = FileStore.CreateStore()
                 .Root(StoragePath1);
 
             //  creating new doc 
@@ -139,7 +139,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void ObjectStoreTests()
         {
-            var _store = FileStore.GetStore();
+            var _store = FileStore.CreateStore();
 
             var data = new SimpleModel
             {
@@ -160,7 +160,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void SubStorageTests()
         {
-            var _store = FileStore.GetStore(StoragePath1);
+            var _store = FileStore.CreateStore(StoragePath1);
 
             //  creating news docs
             long newsId1 = _store.StoreText("news content 1", "news");
@@ -181,7 +181,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void Sub_Storage_AS_A_Path()
         {
-            var _store = FileStore.GetStore(StoragePath1);
+            var _store = FileStore.CreateStore(StoragePath1);
 
             //  creating news docs
             long newsId1 = _store.StoreText("economic news content 1", "news/economic");
@@ -197,7 +197,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void Store_By_Key()
         {
-            var _store = FileStore.GetStore()
+            var _store = FileStore.CreateStore()
                 .UseSimplePath();
 
             var data = new SimpleModel
@@ -223,7 +223,7 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void Use_Simple_Path_Instead_Of_Hashed_Path_As_An_Option()
         {
-            var _store = FileStore.GetStore()
+            var _store = FileStore.CreateStore()
                 .UseSimplePath();
 
             var data = new SimpleModel

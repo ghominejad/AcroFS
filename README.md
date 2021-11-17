@@ -1,14 +1,16 @@
 
 ### Cross-platform, small and super fast file-based storage library
 
-`AcroFS` is a very small, cross-platform and super fast file system based storage library that can manage huge amounts of files on your file system
+`AcroFS` is a very small, cross-platform and super fast file system based storage library that can manage huge amount of files on your file system.
+
+Its also provides a persistant caching layer for .Net `IMemoryCache`. Just use `_fileCache = _memoryCache.Persisant()` to use file cache and memory cache together!
 
 
 
 ``` csharp
 
 // Get the default store
-var _repository = FileStore.GetStore();
+var _repository = FileStore.CreateStore();
 
 // store
 var docId = _repository.Store(data);
@@ -20,13 +22,15 @@ var data = _repository.Load(docId);
 
 
 # Features
-- Generates unique ids as integer
+
 - Multiple Storage
 - Sub Storages
+- Persistant cache layer for .Net `IMemoryCache`
 - Json Serialization/Deserialization
 - GZip Compression / Decompression for text files
 - Store/Load Objects, Texts and Streams
 - Store/Load Attachments related to a doc
+- Assigns unique ids automatically
 - .Net Core / Mono / Linux / Mac Support 
 
 
@@ -34,48 +38,42 @@ var data = _repository.Load(docId);
 
 [![NuGet version](https://img.shields.io/nuget/v/Acrobit.AcroFS.svg)](https://www.nuget.org/packages/Acrobit.AcroFS)
 
-# How it works
 
-It keeps the last ID in memory and generates new ones by a simple atomic +1 operation and so it's very fast.
-It converts a doc id into a hex number and stores it as 4 hirarchy folders
-
-    StorageRoot\12\31\26\5A\17
-
-The last hex number ( in this example `17` ) is the stored file.
-
-[//]: # ( By default configuration it currently can store billions of files or even more, simply by changing the configuration!)
-
-You can assign attachments to a file. they are stored as `Filename`[-]`AttachName`
-
-For example, two attachment files are assigned to `documentId  17`  as following file names:
-
-```
-StorageRoot\...\17
-            ...\17-attachmentFile1
-            ...\17-attachmentFile2
-````
 
 
 # Examples
 <br/>
 
-- **Store and Load Models** :
+## Create or get the default repository
 ``` csharp
-// Get the default store ( `Data/default-store` )
-var _repository = FileStore.GetStore();
+var _repository = FileStore.CreateStore();
+```
+> All files will be stored in `./Data/default-store` 
 
+
+## Store and load models
+
+``` csharp
 // store    
 long docId = _repository.Store<MyModel>(model1);
 
 // load
-var theModel = _repository.Load<MyModel>(docId));
-Assert.Equal("name@mail.com", theModel.Email);
+var myModel = _repository.Load<MyModel>(docId));
 ```
 
-- **Store and Load Texts** :
+
+## Store and load by a key
 ``` csharp
-// defining the store in a custom location
-var _repository = FileStore.GetStore("c:\\store1");
+var key ="MyModel";
+// store
+_store.StoreByKey(key, data);
+
+// load
+var myModel = _repository.Load<MyModel>(key);
+```
+
+## Store and load texts
+``` csharp
 
 // store    
 long docId = _repository.StoreText("the content");
@@ -86,7 +84,7 @@ Assert.Equal("the content", _repository.LoadText(docId));
 
  <br/>
 
-- **Store and load Streams** :
+## Store and load Streams
 ``` csharp
 // store    
 long docId = _repository.Store(theStream);
@@ -95,28 +93,11 @@ long docId = _repository.Store(theStream);
 var myStream = _repository.Load(docId));
 ```
 
-- **Store and load Models** :
+
+
+## Use simple path instead of hashed path
 ``` csharp
-// store    
-long docId = _repository.Store(mymodel);
-
-// load
-var myModel = _repository.Load<MyModel>(docId));
-```
-
-- **Store and load by string key** :
-``` csharp
-var key ="MyModel";
-// store
-_store.StoreByKey(key, data);
-
-// load
-var myModel = _repository.Load<MyModel>(key));
-```
-
-- **Use simple path instead of hashed path ** :
-``` csharp
-var _repository = FileStore.GetStore()
+var _repository = FileStore.CreateStore()
     .UseSimplePath();
 
 var key ="MyModel.json";
@@ -126,10 +107,13 @@ _store.StoreByKey(key, data);
 // load
 var myModel = _repository.Load<MyModel>(key));
 ```
-
+## Create the store in a custom location
+```CSHARP
+var _repository = FileStore.CreateStore("c:\\store1");
+```
 <br/>
 
-- **Attachments** :
+## Attachments
 ``` csharp
 // create doc
 long docId = _repository.StoreText("the content");
@@ -161,7 +145,7 @@ IList<MyModel> myModelList = _repository.LoadAttachments<MyModel>(docId);
 
 <br/>
 
-- **GZip Compresion for Texts** :
+## GZip Compresion for Texts
 ``` csharp
 // store    
 long docId = _repository.StoreText("a large text", 
@@ -175,7 +159,7 @@ var myText = _repository.LoadText(docId,
 
 <br/>
 
-- **Sub Storages** 
+## Sub Storage
 ``` csharp
 //  creating news docs
 long newsId1 = _repository.StoreText("news content 1", "news");
@@ -201,6 +185,76 @@ StorageRoot\article\...\01
                     ...\02
 ````
 
+# FileCache
+Its a persistant layer for `IMemoryCache`
+## Instantiation
+``` csharp
+IMemoryCache _memoryCache; // resolve it via .net dependency injection
+var fileCache = _memoryCache.Persistant();
+```
+> There is no overhead on `Persistant()` method so you can use it each time you want to use file cache over memory cache!
+## Create persistant cache with absolute expiration
+``` csharp
+var key = "myKey";
+var value = "myValue";
+
+// store into both memory and file together
+fileCache.Set(key, value, TimeSpan.FromMinutes(1));;
+
+// retrive the cached value
+var found = cache.TryGetValue(key, out result);
+
+``` 
+> If the cached item wasn't found inside the memory, then the file cache will be loaded.
+
+> According to .Net `IMemoryCache` If you specify `DateTimeOffset` it will be used as absolute expiration
+> and if you specify `TimeSpan` it will be used as absolute expiration relative to now. 
+## Caching models
+
+``` csharp
+var myModel = new MyModel(...);
+
+// store into both memory and file together
+fileCache.Set(cacheKey, myModel, TimeSpan.FromMinutes(1));;
+
+// retrive the cached value
+MyModel result;
+var found = cache.TryGetValue(cacheKey, out result);
+
+``` 
+## GetOrCreate
+``` csharp
+var cachedResult = await _cache.GetOrCreate(cacheKey, async entry =>
+{
+    entry.SlidingExpiration = TimeSpan.FromSeconds(10);
+
+    var result = await loadMyDataAsync();
+    
+    return result;
+});
+
+```
 
 
+
+# How it works
+
+It keeps the last ID in memory and generates new ones by a simple atomic +1 operation and so it's very fast.
+It converts a doc id into a hex number and stores it as 4 hirarchy folders
+
+    StorageRoot\12\31\26\5A\17
+
+The last hex number ( in this example `17` ) is the final file name.
+
+[//]: # ( By default configuration it currently can store billions of files or even more, simply by changing the configuration!)
+
+You can assign attachments to a file. They are stored as `Filename`[-]`AttachName`
+
+For example, two attachment files are assigned to `documentId  17`  as following file names:
+
+```
+StorageRoot\...\17
+            ...\17-attachmentFile1
+            ...\17-attachmentFile2
+````
 

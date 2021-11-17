@@ -57,7 +57,18 @@ namespace Acrobit.AcroFS
 			Root(repositoryRoot);
 			
         }
-	
+
+		public string GenerateHashedPath(object key)
+        {
+			if (key.GetType() == typeof(string))
+				return GenerateHashedPath((string)key);
+			if (key.GetType() == typeof(int))
+				return GenerateHashedPath((int)key);
+			else return GenerateHashedPath((long)key);
+
+		}
+
+
 		public string GenerateHashedPath(long val)
 		{
 			if(val==0)
@@ -105,12 +116,12 @@ namespace Acrobit.AcroFS
 		public ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>> dicClusters = 
 			new ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>>();
 	
-		public string GetHashedPath(long id, long clusterId, string clusterPath)
+		public string GetHashedPath(object key, long clusterId, string clusterPath)
 		{
 			
 			string left=GenerateHashedPath(clusterId);
 			
-			string right=GenerateHashedPath(id);		
+			string right=GenerateHashedPath(key);		
 			
 			string path = RepositoryRoot;
 			
@@ -126,27 +137,7 @@ namespace Acrobit.AcroFS
 			return path;
 			
 		}
-		public string GetHashedPath(string id, long clusterId, string clusterPath)
-		{
-
-			string left = GenerateHashedPath(clusterId);
-
-			string right = GenerateHashedPath(id);
-
-			string path = RepositoryRoot;
-
-			if (left.Length > 0)
-				path += left + "/";
-
-			if (clusterPath.Length > 0)
-				path += clusterPath + "/";
-
-			if (right.Length > 0)
-				path += right;
-
-			return path;
-
-		}
+		
 
 		public string GetHashedPath(long id,  string clusterPath)
         {
