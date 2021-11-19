@@ -67,7 +67,7 @@ namespace Acrobit.AcroFS.Caching
             _fileStore.StoreByKey(entry.Key, (T)entry.Value, cacheCluster);
 
         }
-        public bool TryGetValue<T>(object key, out T value) where T : class
+        public bool TryGetValue<T>(object key, out T value) 
         {
             if (!_memCache.TryGetValue(key, out value)) // check inside memory
             {

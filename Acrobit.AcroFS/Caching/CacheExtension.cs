@@ -69,10 +69,12 @@ namespace Microsoft.Extensions.Caching.Memory
             return value;
         }
 
-        public static TItem Set<TItem>(this FileCache cache, object key, TItem value, TimeSpan absoluteExpirationRelativeToNow)
+        public static TItem Set<TItem>(this FileCache cache, object key, TItem value, TimeSpan expirationInterval, bool isSlidingExpiration = false)
         {
             var entry = cache.CreateEntry(key);
-            entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
+            if(isSlidingExpiration)
+                entry.SlidingExpiration = expirationInterval;
+            else entry.AbsoluteExpirationRelativeToNow = expirationInterval;
             entry.Value = value;
 
             entry.Dispose();
@@ -131,7 +133,7 @@ namespace Microsoft.Extensions.Caching.Memory
 
         public static async Task<TItem> GetOrCreateAsync<TItem>(this FileCache cache, object key, Func<ICacheEntry, Task<TItem>> factory)
         {
-            if (!cache.TryGetValue(key, out object result))
+            if (!cache.TryGetValue(key, out TItem result))
             {
                 var entry = cache.CreateEntry(key);
                 result = await factory(entry);
