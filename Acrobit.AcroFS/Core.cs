@@ -330,7 +330,15 @@ namespace Acrobit.AcroFS
 		
 		public void PrepaireDirectoryByFilename(string filename)
 		{
-			string folderPath = filename.Substring(0, filename.Length-3);
+
+			
+			var index = filename.LastIndexOf('/');
+            if (index < 0) return;
+
+            string folderPath = filename.Substring(0, index+1);
+
+			
+
 			System.IO.Directory.CreateDirectory(folderPath);
 		}
 
