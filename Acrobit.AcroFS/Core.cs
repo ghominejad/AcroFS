@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Linq;
 
 // Gita FileSystem Storage
 namespace Acrobit.AcroFS
@@ -344,8 +345,11 @@ namespace Acrobit.AcroFS
 			if (string.IsNullOrEmpty(repositoryRoot))
 				repositoryRoot = GetDefaultRepositoryPath();
 
+			if (repositoryRoot.Last() != '/')
+				repositoryRoot += '/';
 
-			if (!Directory.Exists(repositoryRoot))
+
+            if (!Directory.Exists(repositoryRoot))
 				Directory.CreateDirectory(repositoryRoot);
 			_repositoryRoot = repositoryRoot;
 

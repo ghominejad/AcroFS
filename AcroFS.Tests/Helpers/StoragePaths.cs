@@ -36,7 +36,7 @@ namespace Acrobit.AcroFS.Tests.Helpers
         {
             var root = Path.Combine(
                 RootFolder,
-                $"{Guid.NewGuid()}\\");
+                $"{Guid.NewGuid()}/");
 
             Directory.CreateDirectory(root);
             return root;
