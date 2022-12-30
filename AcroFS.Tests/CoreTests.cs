@@ -107,7 +107,7 @@ namespace Acrobit.AcroFS.Tests
             var path = core.GetHashedPath(docKey, "news");
 
             Assert.Equal($"{StoragePath}news/custom_key",
-                core.GetHashedPath(docKey, "news"));
+                path);
 
 
 
