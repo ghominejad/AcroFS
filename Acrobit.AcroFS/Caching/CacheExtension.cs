@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Acrobit.AcroFS.Caching;
+
+using Microsoft.Extensions.Internal;
 
 using System;
 using System.Threading.Tasks;
-using global::Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Internal;
-using Acrobit.AcroFS.Caching;
 
 namespace Microsoft.Extensions.Caching.Memory
 {
@@ -72,7 +69,7 @@ namespace Microsoft.Extensions.Caching.Memory
         public static TItem Set<TItem>(this FileCache cache, object key, TItem value, TimeSpan expirationInterval, bool isSlidingExpiration = false)
         {
             var entry = cache.CreateEntry(key);
-            if(isSlidingExpiration)
+            if (isSlidingExpiration)
                 entry.SlidingExpiration = expirationInterval;
             else entry.AbsoluteExpirationRelativeToNow = expirationInterval;
             entry.Value = value;
@@ -138,7 +135,7 @@ namespace Microsoft.Extensions.Caching.Memory
                 var entry = cache.CreateEntry(key);
                 result = await factory(entry);
                 entry.SetValue(result);
-                
+
                 // need to manually call dispose instead of having a using
                 // in case the factory passed in throws, in which case we
                 // do not want to add the entry to the cache
@@ -171,19 +168,14 @@ namespace Microsoft.Extensions.Caching.Memory
 
         }
 
-        public static FileCache Persistent(this IMemoryCache cache)
+        public static FileCache Persistent(this IMemoryCache cache, string repositoryRoot = null)
         {
-            return new FileCache(new SystemClock(), cache);
+            return new FileCache(new SystemClock(), cache, repositoryRoot);
         }
 
-        public static FileCache Persistent(this IMemoryCache cache, ISystemClock clock)
+        public static FileCache Persistent(this IMemoryCache cache, ISystemClock clock, string repositoryRoot = null)
         {
-            return new FileCache(clock, cache);
+            return new FileCache(clock, cache, repositoryRoot);
         }
-
-
-
-
-
     }
 }
