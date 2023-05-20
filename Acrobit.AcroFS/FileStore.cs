@@ -16,20 +16,21 @@ namespace Acrobit.AcroFS
     public class FileStore
     {
         static Dictionary<string, FileStore> stores = new Dictionary<string, FileStore>();
-        private Core _core = null;
+        private readonly Core _core;
 
-        public static FileStore CreateStore(string repositoryRoot = null, StoreConfig config = null)
+        public static FileStore CreateStore(string? repositoryRoot = null, StoreConfig? config = null)
         {
-            if (string.IsNullOrEmpty(repositoryRoot))
-                repositoryRoot = Core.GetDefaultRepositoryPath();
+            string root = repositoryRoot ?? Core.GetDefaultRepositoryPath();
 
-            if (repositoryRoot != null && stores.ContainsKey(repositoryRoot))
-                return stores[repositoryRoot];
+            if (stores.ContainsKey(root))
+            {
+                return stores[root];
+            }
 
-            var core = new Core(repositoryRoot, config);
+            var core = new Core(root, config);
             var filestore = new FileStore(core);
 
-            stores[repositoryRoot] = filestore;
+            stores[root] = filestore;
 
             return filestore;
         }

@@ -13,7 +13,7 @@ namespace Acrobit.AcroFS.Caching
         private readonly FileStore _fileStore;
         private readonly string cacheCluster = "__cache__";
 
-        public FileCache(ISystemClock systemClock, IMemoryCache memCache, string repositoryRoot = null)
+        public FileCache(ISystemClock systemClock, IMemoryCache memCache, string? repositoryRoot = null)
         {
             _fileStore = FileStore.CreateStore(repositoryRoot);
             _systemClock = systemClock;
