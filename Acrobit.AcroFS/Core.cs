@@ -20,7 +20,6 @@ namespace Acrobit.AcroFS
         {
             get
             {
-
                 return _repositoryRoot;
             }
         }
@@ -33,33 +32,17 @@ namespace Acrobit.AcroFS
                 "default-store/"
                 );
 
-
-
-
             return defaultPath;
-
         }
 
-        //public Core(StoreConfig config=null)
-        //{
-        //	var repositoryRoot = GetDefaultRepositoryPath();
-        //	if (!Directory.Exists(repositoryRoot))
-        //		Directory.CreateDirectory(repositoryRoot);
-
-        //	_repositoryRoot = repositoryRoot;
-        //          _config = config;
-        //      }
-
-        public Core(string repositoryRoot = null, StoreConfig config = null)
+        public Core(string? repositoryRoot = null, StoreConfig? config = null)
         {
             _config = config ?? new StoreConfig
             {
                 UseSimplePath = false,
-
             };
 
-            Root(repositoryRoot);
-
+            _repositoryRoot = Root(repositoryRoot);
         }
 
         public string GenerateHashedPath(object key)
@@ -68,10 +51,9 @@ namespace Acrobit.AcroFS
                 return GenerateHashedPath((string)key);
             if (key.GetType() == typeof(int))
                 return GenerateHashedPath((int)key);
-            else return GenerateHashedPath((long)key);
-
+            else
+                return GenerateHashedPath((long)key);
         }
-
 
         public string GenerateHashedPath(long val)
         {
@@ -153,20 +135,14 @@ namespace Acrobit.AcroFS
             return GetHashedPath(0, clusterId, clusterPath);
         }
 
-
-
-
         public string GetHashedPath(string id, string clusterPath)
         {
             return GetHashedPath(id, 0, clusterPath);
         }
 
-
-
         public long GetNewStoreId(long clusterId, string clusterPath)
         {
             string clusterhashedPath = GetClusterHashedPath(clusterId, clusterPath);
-            long newStoreId = 0;
 
             if (!dicClusters.ContainsKey(clusterId))
                 dicClusters.TryAdd(clusterId, new ConcurrentDictionary<string, StoreId>());
@@ -174,10 +150,10 @@ namespace Acrobit.AcroFS
             if (!dicClusters[clusterId].ContainsKey(clusterPath))
                 dicClusters[clusterId][clusterPath] = new StoreId(this, clusterhashedPath);
 
-            newStoreId = dicClusters[clusterId][clusterPath].GetNewId();
-
+            long newStoreId = dicClusters[clusterId][clusterPath].GetNewId();
             return newStoreId;
         }
+
         public long GetNewStoreId(string clusterPath = "")
         {
             return GetNewStoreId(0, clusterPath);
@@ -188,7 +164,7 @@ namespace Acrobit.AcroFS
             string[] dirs;
             if (justGFS)
             {
-                dirs = System.IO.Directory.GetDirectories(hashingPath, "$*");
+                dirs = Directory.GetDirectories(hashingPath, "$*");
                 for (int i = 0; i < dirs.Length; i++)
                 {
                     dirs[i] = dirs[i].Substring(
@@ -207,7 +183,7 @@ namespace Acrobit.AcroFS
             string[] files;
             if (justGFS)
             {
-                files = System.IO.Directory.GetFiles(hashingPath, "$*");
+                files = Directory.GetFiles(hashingPath, "$*");
                 for (int i = 0; i < files.Length; i++)
                 {
                     files[i] = files[i].Substring(
@@ -216,25 +192,18 @@ namespace Acrobit.AcroFS
                 }
             }
             else
-                files = System.IO.Directory.GetFiles(hashingPath);
+                files = Directory.GetFiles(hashingPath);
 
             return files;
-
         }
+
         public string[] GetFilesStartByTerm(string hashingPath, string startByTerm)
         {
-            string[] files;
-
-            files = Directory.GetFiles(hashingPath, startByTerm + "*");
-
-
-
-            return files;
-
+            return Directory.GetFiles(hashingPath, startByTerm + "*");
         }
+
         public void GetBytes(Stream stream, byte[] bytesInStream)
         {
-            //byte[] bytesInStream = new byte[stream.Length];
             stream.Read(bytesInStream, 0, (int)bytesInStream.Length);
         }
 
@@ -331,59 +300,26 @@ namespace Acrobit.AcroFS
             return content;
         }
 
-        public void SaveStreamToFileOld(string fileFullPath, Stream stream, bool compress)
-        {
-            //if (stream.Length == 0) return;
-
-            // Create a FileStream object to write a stream to a file
-            using (FileStream fileStream = System.IO.File.Create(fileFullPath))
-            {
-                stream.CopyTo(fileStream);
-                /*
-				if(stream.Length!=0){
-					
-					
-					
-		        // Fill the bytes[] array with the stream data
-		        byte[] bytesInStream = new byte[stream.Length];
-		        stream.Read(bytesInStream, 0, (int)bytesInStream.Length);
-		
-		        // Use FileStream object to write to the specified file
-		        fileStream.Write(bytesInStream, 0, bytesInStream.Length);
-				}*/
-
-            }
-        }
-
         public void SaveStringToFile(string fileFullPath, string content)
         {
-            //if (stream.Length == 0) return;
-
             // Create a FileStream object to write a stream to a file
-            using (FileStream fileStream = System.IO.File.Create(fileFullPath))
+            using FileStream fileStream = File.Create(fileFullPath);
+
+            if (content.Length != 0)
             {
-                if (content.Length != 0)
-                {
-
-                    using (StreamWriter sw = new StreamWriter(fileStream))
-                        sw.Write(content);
-
-                }
+                using (StreamWriter sw = new StreamWriter(fileStream))
+                    sw.Write(content);
             }
         }
 
         public void PrepaireDirectoryByFilename(string filename)
         {
-
-
             var index = filename.LastIndexOf('/');
             if (index < 0) return;
 
             string folderPath = filename.Substring(0, index + 1);
 
-
-
-            System.IO.Directory.CreateDirectory(folderPath);
+            Directory.CreateDirectory(folderPath);
         }
 
         #region Options
@@ -392,7 +328,8 @@ namespace Acrobit.AcroFS
             _config.UseSimplePath = useSimplePath;
             return this;
         }
-        public Core Root(string repositoryRoot)
+
+        public string Root(string? repositoryRoot)
         {
             if (string.IsNullOrEmpty(repositoryRoot))
                 repositoryRoot = GetDefaultRepositoryPath();
@@ -400,15 +337,14 @@ namespace Acrobit.AcroFS
             if (repositoryRoot.Last() != '/')
                 repositoryRoot += '/';
 
-
             if (!Directory.Exists(repositoryRoot))
                 Directory.CreateDirectory(repositoryRoot);
+
             _repositoryRoot = repositoryRoot;
 
-
-            return this;
-
+            return _repositoryRoot;
         }
+
         #endregion
 
     }

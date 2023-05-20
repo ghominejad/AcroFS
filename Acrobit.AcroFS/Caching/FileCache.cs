@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Internal;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Acrobit.AcroFS.Caching
@@ -81,7 +82,7 @@ namespace Acrobit.AcroFS.Caching
             await _fileStore.StoreByKeyAsync(entry.Key, (T)entry.Value, cacheCluster);
         }
 
-        public bool TryGetValue<T>(object key, out T value)
+        public bool TryGetValue<T>(object key, [NotNullWhen(true)] out T value)
         {
             if (!_memCache.TryGetValue(key, out value)) // check inside memory
             {
@@ -118,7 +119,7 @@ namespace Acrobit.AcroFS.Caching
             return false;
         }
 
-        public async Task<(bool, T)> TryGetValueAsync<T>(object key)
+        public async Task<(bool, T?)> TryGetValueAsync<T>(object key) where T : class
         {
             if (!_memCache.TryGetValue(key, out T value)) // check inside memory
             {

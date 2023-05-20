@@ -547,6 +547,7 @@ namespace Acrobit.AcroFS
             _core.UseSimplePath(useSimplePath);
             return this;
         }
+
         public FileStore Root(string repositoryRoot)
         {
             _core.Root(repositoryRoot);
