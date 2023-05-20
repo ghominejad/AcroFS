@@ -46,6 +46,19 @@ namespace Microsoft.Extensions.Caching.Memory
                 cache.Persist<TItem>(entry);
             }
 
+            return value;
+        }
+
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value)
+        {
+            var entry = cache.CreateEntry(key);
+            entry.Value = value;
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
+            }
 
             return value;
         }
@@ -61,6 +74,22 @@ namespace Microsoft.Extensions.Caching.Memory
             if (cache.Get(key) != null)
             {
                 cache.Persist<TItem>(entry);
+            }
+
+            return value;
+        }
+
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, DateTimeOffset absoluteExpiration)
+        {
+            var entry = cache.CreateEntry(key);
+            entry.AbsoluteExpiration = absoluteExpiration;
+            entry.Value = value;
+
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
             }
 
             return value;
@@ -84,6 +113,23 @@ namespace Microsoft.Extensions.Caching.Memory
             return value;
         }
 
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, TimeSpan expirationInterval, bool isSlidingExpiration = false)
+        {
+            var entry = cache.CreateEntry(key);
+            if (isSlidingExpiration)
+                entry.SlidingExpiration = expirationInterval;
+            else entry.AbsoluteExpirationRelativeToNow = expirationInterval;
+            entry.Value = value;
+
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
+            }
+
+            return value;
+        }
 
         public static TItem Set<TItem>(this FileCache cache, object key, TItem value, MemoryCacheEntryOptions options)
         {
@@ -102,7 +148,25 @@ namespace Microsoft.Extensions.Caching.Memory
                 }
             }
 
+            return value;
+        }
 
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, MemoryCacheEntryOptions options)
+        {
+            using (var entry = cache.CreateEntry(key))
+            {
+                if (options != null)
+                {
+                    entry.SetOptions(options);
+                }
+
+                entry.Value = value;
+
+                if (cache.Get(key) != null)
+                {
+                    await cache.PersistAsync<TItem>(entry);
+                }
+            }
 
             return value;
         }
@@ -143,7 +207,7 @@ namespace Microsoft.Extensions.Caching.Memory
 
                 if (cache.Get(key) != null)
                 {
-                    cache.Persist<TItem>(entry);
+                    await cache.PersistAsync<TItem>(entry);
                 }
             }
 
