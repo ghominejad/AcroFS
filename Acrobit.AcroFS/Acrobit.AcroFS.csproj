@@ -8,9 +8,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Acrobit.AcroFS</PackageId>
-    <Version>2.1.16</Version>
+    <Version>2.1.17</Version>
     <Authors>ghominejad</Authors>
-    <Company>Gita</Company>
+    <Company>Acrobit</Company>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Helpers\**" />
