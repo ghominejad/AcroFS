@@ -1,10 +1,8 @@
-using System;
-using System.IO;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.IO.Compression;
 using Newtonsoft.Json;
+
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 // Gita FileSystem Storage
@@ -36,9 +34,9 @@ namespace Acrobit.AcroFS
         }
 
         [Obsolete("This method is obsolete. use CreateStore instead")]
-        public static FileStore GetStore(string repositoryRoot = null, StoreConfig config = null) => CreateStore(repositoryRoot, config);
+        public static FileStore GetStore(string? repositoryRoot = null, StoreConfig? config = null) => CreateStore(repositoryRoot, config);
 
-        public bool Exists(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public bool Exists(object docKey, string clusterPath = "", long clusterId = 0)
         {
             string hashedPath = _core.GetHashedPath(docKey, clusterId, clusterPath);
             return File.Exists(hashedPath);
@@ -71,8 +69,7 @@ namespace Acrobit.AcroFS
             _core.PrepaireDirectoryByFilename(hashedPath);
 
             // Saving stream to the file 
-            _core.SaveStreamToFile(hashedPath, content,
-                                  options == StoreOptions.Compress);
+            _core.SaveStreamToFile(hashedPath, content, options == StoreOptions.Compress);
 
             // Returns new store id
             return storeId;
@@ -300,35 +297,33 @@ namespace Acrobit.AcroFS
             await AttachTextAsync(key, attachName, jsonData, clusterPath, options, clusterId);
         }
 
-        // Returns a new store id, may be needed for only attachments
-        public long GetNewStoreId(string clusterPath = "", long clusterId = 0)
-        {
-            return _core.GetNewStoreId(clusterId, clusterPath);
-        }
-
         #endregion
 
         #region Load
 
         // Loading a binary content 
-        public Stream Load(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public Stream? Load(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             string hashedPath = _core.GetHashedPath(docKey, clusterId, clusterPath);
 
             if (!File.Exists(hashedPath))
+            {
                 return null;
+            }
 
             Stream content = _core.LoadStreamFromFile(hashedPath, options == LoadOptions.Decompress);
 
             return content;
         }
 
-        public async Task<Stream> LoadAsync(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public async Task<Stream?> LoadAsync(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             string hashedPath = _core.GetHashedPath(docKey, clusterId, clusterPath);
 
             if (!File.Exists(hashedPath))
+            {
                 return null;
+            }
 
             Stream content = await _core.LoadStreamFromFileAsync(hashedPath, options == LoadOptions.Decompress);
 
@@ -336,7 +331,7 @@ namespace Acrobit.AcroFS
         }
 
         // Loading a utf8 text content
-        public string LoadTextUtf8(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public string? LoadTextUtf8(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = Load(docKey, clusterPath, options, clusterId);
             if (stream == null)
@@ -351,7 +346,7 @@ namespace Acrobit.AcroFS
             return result;
         }
 
-        public async Task<string> LoadTextUtf8Async(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public async Task<string?> LoadTextUtf8Async(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = await LoadAsync(docKey, clusterPath, options, clusterId);
             if (stream == null)
@@ -366,22 +361,35 @@ namespace Acrobit.AcroFS
             return result;
         }
 
-        public T Load<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public T? Load<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var jsonData = LoadTextUtf8(docKey, clusterPath, options, clusterId);
+            if (jsonData == null)
+            {
+                return default;
+            }
+
             return JsonConvert.DeserializeObject<T>(jsonData);
         }
 
-        public async Task<T> LoadAsync<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public async Task<T?> LoadAsync<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var jsonData = await LoadTextUtf8Async(docKey, clusterPath, options, clusterId);
+            if (jsonData == null)
+            {
+                return default;
+            }
+
             return JsonConvert.DeserializeObject<T>(jsonData);
         }
 
-        public string LoadText(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public string? LoadText(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = Load(docKey, clusterPath, options, clusterId);
-            if (stream == null) return null;
+            if (stream == null)
+            {
+                return null;
+            }
 
             string result = stream.ReadToEnd();
             stream.Close();
@@ -390,7 +398,7 @@ namespace Acrobit.AcroFS
         }
 
         // Loading a binary attached item 
-        public Stream LoadStreamAttachment(object key, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public Stream? LoadStreamAttachment(object key, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             // Optaining pathes
             string hashedPath = _core.GetHashedPath(key, clusterId, clusterPath);
@@ -398,7 +406,9 @@ namespace Acrobit.AcroFS
 
             // Checking for existing 
             if (!File.Exists(fullPath))
+            {
                 return null;
+            }
 
             // Load file from disk
             Stream content = _core.LoadStreamFromFile(fullPath,
@@ -421,8 +431,7 @@ namespace Acrobit.AcroFS
             var contents = new List<Stream>();
             foreach (var path in paths)
             {
-                contents.Add(_core.LoadStreamFromFile(path,
-                           options == LoadOptions.Decompress));
+                contents.Add(_core.LoadStreamFromFile(path, options == LoadOptions.Decompress));
             }
 
             return contents;
@@ -439,49 +448,51 @@ namespace Acrobit.AcroFS
                 list.Add(stream.ReadToEnd());
                 stream.Close();
             }
-            // Converting to utf8 text
 
             return list;
-
         }
 
-        public string LoadTextAttachment(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public string? LoadTextAttachment(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = LoadStreamAttachment(docKey, attachName, clusterPath, options, clusterId);
-            if (stream == null) return null;
+            if (stream == null)
+            {
+                return null;
+            }
 
-            // Converting to utf8 text
             string result = stream.ReadToEnd();
             stream.Close();
 
             return result;
-
         }
 
         // Loading a utf8 text attached item 
-        public string LoadTextAttachmentUtf8(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public string? LoadTextAttachmentUtf8(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = LoadStreamAttachment(docKey, attachName, clusterPath, options, clusterId);
-            if (stream == null) return null;
+            if (stream == null)
+            {
+                return null;
+            }
 
             // Converting to utf8 text
             string result = stream.ToUtf8String();
             stream.Close();
 
             return result;
-
         }
 
-        public T LoadAttachment<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        public T? LoadAttachment<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var jsonData = LoadTextAttachmentUtf8(docKey, attachName, clusterPath, options, clusterId);
 
-            if (jsonData == null) return default(T);
+            if (jsonData == null)
+            {
+                return default(T);
+            }
 
             return JsonConvert.DeserializeObject<T>(jsonData);
-
         }
-
 
         public IList<T> LoadAttachments<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
@@ -491,7 +502,10 @@ namespace Acrobit.AcroFS
 
             foreach (var jsonData in jsonList)
             {
-                list.Add(JsonConvert.DeserializeObject<T>(jsonData));
+                if (JsonConvert.DeserializeObject<T>(jsonData) is T item)
+                {
+                    list.Add(item);
+                }
             }
 
             return list;

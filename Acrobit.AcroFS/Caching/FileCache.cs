@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Internal;
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Acrobit.AcroFS.Caching
@@ -38,11 +37,6 @@ namespace Acrobit.AcroFS.Caching
             _fileStore.RemoveAttachment(key, "FsCacheEntryOptions", cacheCluster);
 
         }
-
-        //public bool TryGetValue(object key, out object value)
-        //{
-        //    return _cache.TryGetValue(key, out value);
-        //}
 
         public void Persist<T>(ICacheEntry entry)
         {
@@ -82,7 +76,7 @@ namespace Acrobit.AcroFS.Caching
             await _fileStore.StoreByKeyAsync(entry.Key, (T)entry.Value, cacheCluster);
         }
 
-        public bool TryGetValue<T>(object key, [NotNullWhen(true)] out T value)
+        public bool TryGetValue<T>(object key, out T value)
         {
             if (!_memCache.TryGetValue(key, out value)) // check inside memory
             {
@@ -92,34 +86,51 @@ namespace Acrobit.AcroFS.Caching
                     var cacheEntryOptions = _fileStore.LoadAttachment<FileCacheEntryOptions>(key, "FsCacheEntryOptions", cacheCluster);
                     var expired = false;
                     if (cacheEntryOptions != null)
+                    {
                         expired = cacheEntryOptions.CheckExpired(_systemClock.UtcNow);
+                    }
 
                     if (!expired)
                     {
-                        value = _fileStore.Load<T>(key, cacheCluster); // load from disk
+                        var loadedValue = _fileStore.Load<T>(key, cacheCluster); // load from disk
+                        if (loadedValue is T item)
+                        {
+                            value = item;
 
-                        // create cache in-memory
-                        var entry = CreateEntry(key);
-                        if (cacheEntryOptions != null)
-                            entry.SetOptions(cacheEntryOptions.ToMemoryOptions());
-                        entry.SetValue(value);
+                            // create cache in-memory
+                            var entry = CreateEntry(key);
+                            if (cacheEntryOptions != null)
+                            {
+                                entry.SetOptions(cacheEntryOptions.ToMemoryOptions());
+                            }
 
-                        // need to manually call dispose instead of having a using
-                        // in case the factory passed in throws, in which case we
-                        // do not want to add the entry to the cache
-                        entry.Dispose();
+                            entry.SetValue(item);
+
+                            // need to manually call dispose instead of having a using
+                            // in case the factory passed in throws, in which case we
+                            // do not want to add the entry to the cache
+                            entry.Dispose();
+
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
 
                     return !expired;
                 }
             }
             else
+            {
                 return true;
+            }
 
             return false;
         }
 
-        public async Task<(bool, T?)> TryGetValueAsync<T>(object key) where T : class
+        public async Task<(bool, T?)> TryGetValueAsync<T>(object key)
         {
             if (!_memCache.TryGetValue(key, out T value)) // check inside memory
             {
@@ -129,25 +140,35 @@ namespace Acrobit.AcroFS.Caching
                     var cacheEntryOptions = _fileStore.LoadAttachment<FileCacheEntryOptions>(key, "FsCacheEntryOptions", cacheCluster);
                     var expired = false;
                     if (cacheEntryOptions != null)
+                    {
                         expired = cacheEntryOptions.CheckExpired(_systemClock.UtcNow);
+                    }
 
                     if (!expired)
                     {
-                        value = await _fileStore.LoadAsync<T>(key, cacheCluster); // load from disk
-
-                        // create cache in-memory
-                        var entry = CreateEntry(key);
-                        if (cacheEntryOptions != null)
+                        var loadedValue = await _fileStore.LoadAsync<T>(key, cacheCluster); // load from disk
+                        if (loadedValue is T item)
                         {
-                            entry.SetOptions(cacheEntryOptions.ToMemoryOptions());
+                            // create cache in-memory
+                            var entry = CreateEntry(key);
+                            if (cacheEntryOptions != null)
+                            {
+                                entry.SetOptions(cacheEntryOptions.ToMemoryOptions());
+                            }
+
+                            entry.SetValue(item);
+
+                            // need to manually call dispose instead of having a using
+                            // in case the factory passed in throws, in which case we
+                            // do not want to add the entry to the cache
+                            entry.Dispose();
+
+                            return (true, item);
                         }
-
-                        entry.SetValue(value);
-
-                        // need to manually call dispose instead of having a using
-                        // in case the factory passed in throws, in which case we
-                        // do not want to add the entry to the cache
-                        entry.Dispose();
+                        else
+                        {
+                            return (false, default);
+                        }
                     }
 
                     return (!expired, value);
@@ -158,7 +179,7 @@ namespace Acrobit.AcroFS.Caching
                 return (true, value);
             }
 
-            return (false, default(T));
+            return (false, default);
         }
     }
 }

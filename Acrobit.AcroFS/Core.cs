@@ -1,8 +1,6 @@
 using System;
-using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +10,6 @@ namespace Acrobit.AcroFS
 {
     public class Core
     {
-
         public StoreConfig _config;
         string _repositoryRoot;
 
@@ -98,13 +95,11 @@ namespace Acrobit.AcroFS
             return hashed;
         }
 
-
         public ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>> dicClusters =
             new ConcurrentDictionary<long, ConcurrentDictionary<string, StoreId>>();
 
         public string GetHashedPath(object key, long clusterId, string clusterPath)
         {
-
             string left = GenerateHashedPath(clusterId);
 
             string right = GenerateHashedPath(key);
@@ -121,9 +116,7 @@ namespace Acrobit.AcroFS
                 path += right;
 
             return path;
-
         }
-
 
         public string GetHashedPath(long id, string clusterPath)
         {
