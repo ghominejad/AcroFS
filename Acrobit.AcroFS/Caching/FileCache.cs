@@ -1,24 +1,18 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Internal;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace Acrobit.AcroFS.Caching
 {
-
     public class FileCache //: IMemoryCache
     {
         private readonly ISystemClock _systemClock;
         private readonly IMemoryCache _memCache;
         private readonly FileStore _fileStore;
         private readonly string cacheCluster = "__cache__";
-        public FileCache(ISystemClock systemClock, IMemoryCache memCache)
+
+        public FileCache(ISystemClock systemClock, IMemoryCache memCache, string repositoryRoot = null)
         {   
-            _fileStore =  FileStore.CreateStore();
+            _fileStore =  FileStore.CreateStore(repositoryRoot);
             _systemClock = systemClock;
             _memCache = memCache;
         }
@@ -67,6 +61,7 @@ namespace Acrobit.AcroFS.Caching
             _fileStore.StoreByKey(entry.Key, (T)entry.Value, cacheCluster);
 
         }
+
         public bool TryGetValue<T>(object key, out T value) 
         {
             if (!_memCache.TryGetValue(key, out value)) // check inside memory
@@ -99,11 +94,10 @@ namespace Acrobit.AcroFS.Caching
                     return !expired;
                 }
             }
-            else return true;
+            else 
+                return true;
 
             return false;
-
-
         }
     }
 }
