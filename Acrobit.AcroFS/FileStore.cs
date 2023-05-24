@@ -417,6 +417,25 @@ namespace Acrobit.AcroFS
             return content;
         }
 
+        public async Task<Stream?> LoadStreamAttachmentAsync(object key, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            // Optaining pathes
+            string hashedPath = _core.GetHashedPath(key, clusterId, clusterPath);
+            string fullPath = hashedPath + "-" + attachName;
+
+            // Checking for existing 
+            if (!File.Exists(fullPath))
+            {
+                return null;
+            }
+
+            // Load file from disk
+            Stream content = await _core.LoadStreamFromFileAsync(fullPath,
+                           options == LoadOptions.Decompress);
+
+            return content;
+        }
+
         public List<Stream> LoadStreamAttachments(object key, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             // Optaining pathes
@@ -435,6 +454,27 @@ namespace Acrobit.AcroFS
             }
 
             return contents;
+        }
+
+        public async Task<IEnumerable<Stream>> LoadStreamAttachmentsAsync(object key, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            // Optaining pathes
+            string hashedPath = _core.GetHashedPath(key, clusterId, clusterPath);
+
+            var pos = hashedPath.LastIndexOf('$');
+            var docName = hashedPath.Substring(pos);
+            var parentFolder = hashedPath.Substring(0, pos);
+
+            var paths = _core.GetFilesStartByTerm(parentFolder, docName + "-");
+
+            var contents = new List<Stream>();
+            var contentsTasks = new List<Task<Stream>>();
+            foreach (var path in paths)
+            {
+                contentsTasks.Add(_core.LoadStreamFromFileAsync(path, options == LoadOptions.Decompress));
+            }
+
+            return await Task.WhenAll(contentsTasks);
         }
 
         public List<string> LoadTextAttachments(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
@@ -482,6 +522,21 @@ namespace Acrobit.AcroFS
             return result;
         }
 
+        public async Task<string?> LoadTextAttachmentUtf8Async(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            var stream = await LoadStreamAttachmentAsync(docKey, attachName, clusterPath, options, clusterId);
+            if (stream == null)
+            {
+                return null;
+            }
+
+            // Converting to utf8 text
+            string result = await stream.ToUtf8StringAsync();
+            stream.Close();
+
+            return result;
+        }
+
         public T? LoadAttachment<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var jsonData = LoadTextAttachmentUtf8(docKey, attachName, clusterPath, options, clusterId);
@@ -493,6 +548,19 @@ namespace Acrobit.AcroFS
 
             return JsonConvert.DeserializeObject<T>(jsonData);
         }
+
+        public async Task<T?> LoadAttachmentAsync<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            var jsonData = await LoadTextAttachmentUtf8Async(docKey, attachName, clusterPath, options, clusterId);
+
+            if (jsonData == null)
+            {
+                return default(T);
+            }
+
+            return JsonConvert.DeserializeObject<T>(jsonData);
+        }
+
 
         public IList<T> LoadAttachments<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {

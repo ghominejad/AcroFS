@@ -137,7 +137,7 @@ namespace Acrobit.AcroFS.Caching
                 if (_fileStore.Exists(key, cacheCluster)) // check inside disk
                 {
                     // check expiration
-                    var cacheEntryOptions = _fileStore.LoadAttachment<FileCacheEntryOptions>(key, "FsCacheEntryOptions", cacheCluster);
+                    var cacheEntryOptions = await _fileStore.LoadAttachmentAsync<FileCacheEntryOptions>(key, "FsCacheEntryOptions", cacheCluster);
                     var expired = false;
                     if (cacheEntryOptions != null)
                     {
