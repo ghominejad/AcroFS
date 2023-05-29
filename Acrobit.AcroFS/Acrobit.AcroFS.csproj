@@ -13,7 +13,7 @@
 		<Company>Gita</Company>
 	</PropertyGroup>
 	<PropertyGroup>
-		<LangVersion>11.0</LangVersion>
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<Compile Remove="Helpers\**" />
