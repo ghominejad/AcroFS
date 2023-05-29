@@ -1,13 +1,13 @@
-﻿using System.IO;
-using Moq;
-using Xunit;
-using Acrobit.AcroFS.Tests.Helpers;
+﻿using Acrobit.AcroFS.Tests.Helpers;
+
 using AcroFS.Tests;
+
+using System.IO;
+
+using Xunit;
 
 namespace Acrobit.AcroFS.Tests
 {
-
-
     public class FileStoreTests
     {
         readonly string StoragePath1 = "";
@@ -46,11 +46,10 @@ namespace Acrobit.AcroFS.Tests
 
             Assert.Equal("the content", _store.LoadText(docId));
         }
+
         [Fact]
         public void AttachmentTest()
         {
-            
-
             var _store = FileStore.CreateStore(StoragePath1);
 
             // create doc
@@ -68,8 +67,8 @@ namespace Acrobit.AcroFS.Tests
             var contents = _store.LoadTextAttachments(docId);
 
             Assert.Equal(2, contents.Count);
-
         }
+
         [Fact]
         public void MultipleStoreTest()
         {
@@ -81,7 +80,6 @@ namespace Acrobit.AcroFS.Tests
 
             Assert.Equal("content 1", _storeOne.LoadText(docId1) );
             Assert.Equal("content 2", _storeTwo.LoadText(docId2) );
-
         }
 
         [Fact]
@@ -101,8 +99,8 @@ namespace Acrobit.AcroFS.Tests
 
             Assert.Equal(2, docId1);
             Assert.Equal(2, docId2);
-
         }
+
         [Fact]
         public void StreamTest()
         {
@@ -117,7 +115,6 @@ namespace Acrobit.AcroFS.Tests
             }
 
             Assert.Equal("the content", _store.LoadText(docId) );
-
         }
 
         [Fact]
@@ -133,9 +130,9 @@ namespace Acrobit.AcroFS.Tests
             var stream = _store.Load(docId);
             var text = _store.LoadText(docId, options: LoadOptions.Decompress);
 
-            Assert.True(stream.Length < text.Length);
-
+            Assert.True(stream!.Length < text!.Length);
         }
+
         [Fact]
         public void ObjectStoreTests()
         {
@@ -152,13 +149,9 @@ namespace Acrobit.AcroFS.Tests
             
             var loadedData = _store.Load<SimpleModel>(docId);
 
-            Assert.Equal(loadedData.Email, data.Email);
-            Assert.Equal(loadedData.Name, data.Name);
-
+            Assert.Equal(loadedData!.Email, data.Email);
+            Assert.Equal(loadedData!.Name, data.Name);
         }
-
-
-        
 
         [Fact]
         public void SubStorageTests()
@@ -167,18 +160,15 @@ namespace Acrobit.AcroFS.Tests
 
             //  creating news docs
             long newsId1 = _store.StoreText("news content 1", "news");
-            long newsId2 = _store.StoreText("news content 2", "news");
+            _ = _store.StoreText("news content 2", "news");
 
             //  creating articles docs
-            long articleId1 = _store.StoreText("article content 1", "article");
+            _ = _store.StoreText("article content 1", "article");
             long articleId2 = _store.StoreText("article content 2", "article");
 
             //  loading
             Assert.Equal("news content 1", _store.LoadText(newsId1, "news"));
             Assert.Equal("article content 2", _store.LoadText(articleId2, "article"));
-
-
-
         }
 
         [Fact]
@@ -189,12 +179,10 @@ namespace Acrobit.AcroFS.Tests
             //  creating news docs
             long newsId1 = _store.StoreText("economic news content 1", "news/economic");
             long newsId2 = _store.StoreText("health news content 1", "news/health");
-
  
             //  loading
             Assert.Equal("economic news content 1", _store.LoadText(newsId1, "news/economic"));
             Assert.Equal("health news content 1", _store.LoadText(newsId2, "news/health"));
-
         }
 
         [Fact]
@@ -209,7 +197,6 @@ namespace Acrobit.AcroFS.Tests
                 Email = "ghominejad@gmail.com"
             };
 
-
             var key = "SimpleModel.json";
 
             // store by a key
@@ -218,9 +205,8 @@ namespace Acrobit.AcroFS.Tests
             // load by a key
             var loadedData = _store.Load<SimpleModel>(key);
 
-            Assert.Equal(loadedData.Email, data.Email);
-            Assert.Equal(loadedData.Name, data.Name);
-
+            Assert.Equal(loadedData!.Email, data.Email);
+            Assert.Equal(loadedData!.Name, data.Name);
         }
 
         [Fact]
@@ -235,7 +221,6 @@ namespace Acrobit.AcroFS.Tests
                 Email = "ghominejad@gmail.com"
             };
 
-
             var key = "SimpleModel.json";
 
             // store by a key
@@ -244,11 +229,8 @@ namespace Acrobit.AcroFS.Tests
             // load by a key
             var loadedData = _store.Load<SimpleModel>(key);
 
-            Assert.Equal(loadedData.Email, data.Email);
-            Assert.Equal(loadedData.Name, data.Name);
-
+            Assert.Equal(loadedData!.Email, data.Email);
+            Assert.Equal(loadedData!.Name, data.Name);
         }
-
-
     }
 }

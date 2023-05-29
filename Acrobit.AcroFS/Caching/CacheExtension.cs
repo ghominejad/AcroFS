@@ -15,25 +15,10 @@ namespace Microsoft.Extensions.Caching.Memory
             return value;
         }
 
-        public static TItem Get<TItem>(this FileCache cache, object key)
+        public static TItem? Get<TItem>(this FileCache cache, object key)
         {
-            return (TItem)(cache.Get(key) ?? default(TItem));
+            return (TItem?)(cache.Get(key) ?? default(TItem));
         }
-
-        //public static bool TryGetValue<TItem>(this FsCache cache, object key, out TItem value)
-        //{
-        //    if (cache.TryGetValue(key, out object result))
-        //    {
-        //        if (result is TItem item)
-        //        {
-        //            value = item;
-        //            return true;
-        //        }
-        //    }
-
-        //    value = default;
-        //    return false;
-        //}
 
         public static TItem Set<TItem>(this FileCache cache, object key, TItem value)
         {
@@ -46,6 +31,19 @@ namespace Microsoft.Extensions.Caching.Memory
                 cache.Persist<TItem>(entry);
             }
 
+            return value;
+        }
+
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value)
+        {
+            var entry = cache.CreateEntry(key);
+            entry.Value = value;
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
+            }
 
             return value;
         }
@@ -61,6 +59,22 @@ namespace Microsoft.Extensions.Caching.Memory
             if (cache.Get(key) != null)
             {
                 cache.Persist<TItem>(entry);
+            }
+
+            return value;
+        }
+
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, DateTimeOffset absoluteExpiration)
+        {
+            var entry = cache.CreateEntry(key);
+            entry.AbsoluteExpiration = absoluteExpiration;
+            entry.Value = value;
+
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
             }
 
             return value;
@@ -84,6 +98,23 @@ namespace Microsoft.Extensions.Caching.Memory
             return value;
         }
 
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, TimeSpan expirationInterval, bool isSlidingExpiration = false)
+        {
+            var entry = cache.CreateEntry(key);
+            if (isSlidingExpiration)
+                entry.SlidingExpiration = expirationInterval;
+            else entry.AbsoluteExpirationRelativeToNow = expirationInterval;
+            entry.Value = value;
+
+            entry.Dispose();
+
+            if (cache.Get(key) != null)
+            {
+                await cache.PersistAsync<TItem>(entry);
+            }
+
+            return value;
+        }
 
         public static TItem Set<TItem>(this FileCache cache, object key, TItem value, MemoryCacheEntryOptions options)
         {
@@ -102,18 +133,37 @@ namespace Microsoft.Extensions.Caching.Memory
                 }
             }
 
+            return value;
+        }
 
+        public static async Task<TItem> SetAsync<TItem>(this FileCache cache, object key, TItem value, MemoryCacheEntryOptions options)
+        {
+            using (var entry = cache.CreateEntry(key))
+            {
+                if (options != null)
+                {
+                    entry.SetOptions(options);
+                }
+
+                entry.Value = value;
+
+                if (cache.Get(key) != null)
+                {
+                    await cache.PersistAsync<TItem>(entry);
+                }
+            }
 
             return value;
         }
 
-        public static TItem GetOrCreate<TItem>(this FileCache cache, object key, Func<ICacheEntry, TItem> factory)
+        public static TItem? GetOrCreate<TItem>(this FileCache cache, object key, Func<ICacheEntry, TItem> factory)
         {
-            if (!cache.TryGetValue(key, out object result))
+            if (!cache.TryGetValue(key, out object? result))
             {
                 var entry = cache.CreateEntry(key);
                 result = factory(entry);
                 entry.SetValue(result);
+
                 // need to manually call dispose instead of having a using
                 // in case the factory passed in throws, in which case we
                 // do not want to add the entry to the cache
@@ -125,7 +175,7 @@ namespace Microsoft.Extensions.Caching.Memory
                 }
             }
 
-            return (TItem)result;
+            return (TItem?)result;
         }
 
         public static async Task<TItem> GetOrCreateAsync<TItem>(this FileCache cache, object key, Func<ICacheEntry, Task<TItem>> factory)
@@ -143,7 +193,7 @@ namespace Microsoft.Extensions.Caching.Memory
 
                 if (cache.Get(key) != null)
                 {
-                    cache.Persist<TItem>(entry);
+                    await cache.PersistAsync<TItem>(entry);
                 }
             }
 
@@ -168,12 +218,12 @@ namespace Microsoft.Extensions.Caching.Memory
 
         }
 
-        public static FileCache Persistent(this IMemoryCache cache, string repositoryRoot = null)
+        public static FileCache Persistent(this IMemoryCache cache, string? repositoryRoot = null)
         {
             return new FileCache(new SystemClock(), cache, repositoryRoot);
         }
 
-        public static FileCache Persistent(this IMemoryCache cache, ISystemClock clock, string repositoryRoot = null)
+        public static FileCache Persistent(this IMemoryCache cache, ISystemClock clock, string? repositoryRoot = null)
         {
             return new FileCache(clock, cache, repositoryRoot);
         }
