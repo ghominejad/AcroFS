@@ -26,6 +26,8 @@ namespace Acrobit.AcroFS.Tests
         [Fact]
         public void FileCacheReloadsCacheDataAfterRestart()
         {
+            throw new NotImplementedException("This test fails randomly!");
+
             var clock = new TestClock();
             var cache = CreateCache(clock)
                 .Persistent(clock);

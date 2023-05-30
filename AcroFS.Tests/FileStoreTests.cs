@@ -2,7 +2,9 @@
 
 using AcroFS.Tests;
 
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -12,59 +14,144 @@ namespace Acrobit.AcroFS.Tests
     {
         readonly string StoragePath1 = "";
         readonly string StoragePath2 = "";
+
         public FileStoreTests()
         {
             StoragePaths.CleanRoots();
-            StoragePath1  = StoragePaths.CreateStorageFolder();
+            StoragePath1 = StoragePaths.CreateStorageFolder();
             StoragePath2 = StoragePaths.CreateStorageFolder();
         }
 
         [Fact]
         public void GetStore_Should_Return_DefaultStore_If_Path_Not_Specified()
         {
-            var core = new Core();
-            var _store = FileStore.CreateStore();
-            long docId = _store.StoreText("the content");
-
-            Assert.Equal(1, docId);
-            Assert.Equal("the content", _store.LoadText(docId));
-
-            // any data inside default folder?
             var defaultPath = Core.GetDefaultRepositoryPath();
-            Assert.True(Directory.GetDirectories(defaultPath).Length > 0);
 
+            try
+            {
+                var store = FileStore.CreateStore();
+                long docId = store.StoreText("the content");
+
+                Assert.Equal(1, docId);
+                Assert.Equal("the content", store.LoadText(docId));
+
+                // any data inside default folder?
+                Assert.True(Directory.GetDirectories(defaultPath).Length > 0);
+            }
+            finally
+            {
+                FileStore.RemoveStore(defaultPath);
+            }
+        }
+
+        [Fact]
+        public async Task GetStore_Should_Return_DefaultStore_If_Path_Not_Specified_Async()
+        {
+            var defaultPath = Core.GetDefaultRepositoryPath();
+
+            try
+            {
+                var store = FileStore.CreateStore();
+                long docId = await store.StoreTextAsync("the content");
+
+                Assert.Equal(1, docId);
+                Assert.Equal("the content", await store.LoadTextAsync(docId));
+
+                // any data inside default folder?
+                Assert.True(Directory.GetDirectories(defaultPath).Length > 0);
+            }
+            finally
+            {
+                FileStore.RemoveStore(defaultPath);
+            }
         }
 
         [Fact]
         public void TextTest()
         {
-            var rootPath = StoragePaths.CreateStorageFolder();
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
 
-            var _store = FileStore.CreateStore(rootPath);
-            
-            long docId = _store.StoreText("the content");
+                var content = GetRandomText();
+                long docId = store.StoreText(content);
 
-            Assert.Equal("the content", _store.LoadText(docId));
+                Assert.Equal(content, store.LoadText(docId));
+            }
+            finally
+            {
+                FileStore.RemoveStore(rootPath);
+            }
+        }
+
+        [Fact]
+        public async Task TextTestAsync()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                var content = GetRandomText();
+                long docId = await store.StoreTextAsync(content);
+
+                Assert.Equal(content, await store.LoadTextAsync(docId));
+            }
+            finally
+            {
+                FileStore.RemoveStore(rootPath);
+            }
         }
 
         [Fact]
         public void AttachmentTest()
         {
-            var _store = FileStore.CreateStore(StoragePath1);
+            var store = FileStore.CreateStore(Path.GetRandomFileName());
 
             // create doc
-            long docId = _store.StoreText("the content");
+            long docId = store.StoreText(GetRandomText());
+
+            string attachmentName1 = GetRandomText();
+            string attachmentName2 = GetRandomText();
+            string attachmentContent1 = GetRandomText();
+            string attachmentContent2 = GetRandomText();
 
             // store attachments
-            _store.AttachText(docId, "attach-name-1", "attachment content 1");
-            _store.AttachText(docId, "attach-name-2", "attachment content 2");
-            //_store.Attach(docId, "attach-name-2", "attachment content 2");
+            store.AttachText(docId, attachmentName1, attachmentContent1);
+            store.AttachText(docId, attachmentName2, attachmentContent2);
 
             // retrive attachments
-            Assert.Equal("attachment content 1", _store.LoadTextAttachment(docId, "attach-name-1"));
-            Assert.Equal("attachment content 2", _store.LoadTextAttachment(docId, "attach-name-2"));
+            Assert.Equal(attachmentContent1, store.LoadTextAttachment(docId, attachmentName1));
+            Assert.Equal(attachmentContent2, store.LoadTextAttachment(docId, attachmentName2));
 
-            var contents = _store.LoadTextAttachments(docId);
+            var contents = store.LoadTextAttachments(docId);
+
+            Assert.Equal(2, contents.Count);
+        }
+
+        [Fact]
+        public async Task AttachmentTestAsync()
+        {
+            var store = FileStore.CreateStore(Path.GetRandomFileName());
+
+            // create doc
+            long docId = await store.StoreTextAsync(GetRandomText());
+
+            string attachmentName1 = GetRandomText();
+            string attachmentName2 = GetRandomText();
+            string attachmentContent1 = GetRandomText();
+            string attachmentContent2 = GetRandomText();
+
+            // store attachments
+            await store.AttachTextAsync(docId, attachmentName1, attachmentContent1);
+            await store.AttachTextAsync(docId, attachmentName2, attachmentContent2);
+
+            // retrive attachments
+            Assert.Equal(attachmentContent1, await store.LoadTextAttachmentAsync(docId, attachmentName1));
+            Assert.Equal(attachmentContent2, await store.LoadTextAttachmentAsync(docId, attachmentName2));
+
+            var contents = await store.LoadTextAttachmentsAsync(docId);
 
             Assert.Equal(2, contents.Count);
         }
@@ -78,8 +165,8 @@ namespace Acrobit.AcroFS.Tests
             long docId1 = _storeOne.StoreText("content 1");
             long docId2 = _storeTwo.StoreText("content 2");
 
-            Assert.Equal("content 1", _storeOne.LoadText(docId1) );
-            Assert.Equal("content 2", _storeTwo.LoadText(docId2) );
+            Assert.Equal("content 1", _storeOne.LoadText(docId1));
+            Assert.Equal("content 2", _storeTwo.LoadText(docId2));
         }
 
         [Fact]
@@ -114,7 +201,7 @@ namespace Acrobit.AcroFS.Tests
                 docId = _store.Store(stream);
             }
 
-            Assert.Equal("the content", _store.LoadText(docId) );
+            Assert.Equal("the content", _store.LoadText(docId));
         }
 
         [Fact]
@@ -146,7 +233,7 @@ namespace Acrobit.AcroFS.Tests
 
             //  creating new doc 
             long docId = _store.Store(data);
-            
+
             var loadedData = _store.Load<SimpleModel>(docId);
 
             Assert.Equal(loadedData!.Email, data.Email);
@@ -179,7 +266,7 @@ namespace Acrobit.AcroFS.Tests
             //  creating news docs
             long newsId1 = _store.StoreText("economic news content 1", "news/economic");
             long newsId2 = _store.StoreText("health news content 1", "news/health");
- 
+
             //  loading
             Assert.Equal("economic news content 1", _store.LoadText(newsId1, "news/economic"));
             Assert.Equal("health news content 1", _store.LoadText(newsId2, "news/health"));
@@ -231,6 +318,11 @@ namespace Acrobit.AcroFS.Tests
 
             Assert.Equal(loadedData!.Email, data.Email);
             Assert.Equal(loadedData!.Name, data.Name);
+        }
+
+        private static string GetRandomText()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }

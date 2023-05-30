@@ -6,14 +6,17 @@ namespace Acrobit.AcroFS.Tests.Helpers
 {
     public static class StoragePaths
     {
+        static int Cleaned = 0;
+        static object lockObject = new Object();
+
         public static string RootFolder
         {
             get
             {
                 var root = Path.Combine(
                     Directory.GetCurrentDirectory(),
-                    "root");    
-                
+                    "root");
+
                 return root;
             }
         }
@@ -31,7 +34,6 @@ namespace Acrobit.AcroFS.Tests.Helpers
             }
         }
 
-
         public static string CreateStorageFolder()
         {
             var root = Path.Combine(
@@ -42,20 +44,17 @@ namespace Acrobit.AcroFS.Tests.Helpers
             return root;
         }
 
-      
-
-        static int Cleaned = 0;
-        static object lockObject=new Object();
         public static void CleanRoots()
         {
-            System.Diagnostics.Debug.Write("hello " + Cleaned);
             lock (lockObject)
             {
                 Cleaned++;
 
-                if (Cleaned > 1) return;
+                if (Cleaned > 1)
+                {
+                    return;
+                }
 
-           
                 if (Directory.Exists(RootFolder))
                 {
                     Directory.Delete(RootFolder, true);
@@ -65,9 +64,7 @@ namespace Acrobit.AcroFS.Tests.Helpers
                 {
                     Directory.Delete(DefaultFolder, true);
                 }
-
             }
         }
-
     }
 }
