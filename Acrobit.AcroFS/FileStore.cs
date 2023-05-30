@@ -232,6 +232,21 @@ namespace Acrobit.AcroFS
             return StoreText(jsonData, clusterPath, options, id, clusterId);
         }
 
+        public async Task<long> StoreAsync<T>(T data, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
+            if (data is Stream stream)
+            {
+                return await StoreStreamAsync(stream, clusterPath, options, id, clusterId);
+            }
+            else if (data is string s)
+            {
+                return await StoreTextAsync(s, clusterPath, options, id, clusterId);
+            }
+
+            var jsonData = JsonConvert.SerializeObject(data);
+            return await StoreTextAsync(jsonData, clusterPath, options, id, clusterId);
+        }
+
         public void StoreByKey<T>(object key, T data, string clusterPath = "", StoreOptions options = StoreOptions.None, long clusterId = 0)
         {
             if (data is Stream stream)
