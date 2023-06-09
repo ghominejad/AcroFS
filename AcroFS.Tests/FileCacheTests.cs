@@ -13,11 +13,6 @@ namespace Acrobit.AcroFS.Tests
 {
     public class FileCacheTests
     {
-        public FileCacheTests()
-        {
-            StoragePaths.CleanRoots();
-        }
-
         private IMemoryCache CreateCache(ISystemClock clock)
         {
             return new MemoryCache(new MemoryCacheOptions { Clock = clock });
