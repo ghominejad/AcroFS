@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 
 namespace Acrobit.AcroFS
 {
-
     public static class StringExtensions
-
     {
         public static MemoryStream ToMemoryStream(this string source)
         {

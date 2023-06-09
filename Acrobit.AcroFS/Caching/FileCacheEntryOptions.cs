@@ -11,7 +11,6 @@ namespace Acrobit.AcroFS.Caching
         private long? _size;
         private bool _isExpired;
         internal EvictionReason EvictionReason { get; private set; }
-        //internal DateTimeOffset LastAccessed { get; set; }
 
         /// <summary>
         /// Gets or sets an absolute expiration date for the cache entry.

@@ -24,10 +24,9 @@ namespace Acrobit.AcroFS
             {
                 lock (this)
                 {
-                    // chech again
+                    // Check again
                     if (_storeId == 0)
                     {
-                        // _storeId = Core.FindNewIdFromFS(_clusterhashedPath);						
                         _storeId = LoadMaxId();
                     }
                 }
