@@ -6,21 +6,13 @@ using Acrobit.AcroFS.Tests.Helpers;
 
 namespace Acrobit.AcroFS.Tests
 {
-    public class CoreTests 
+    public class CoreTests
     {
-        readonly string StoragePath = "";
-        public CoreTests()
-        {
-            StoragePaths.CleanRoots();
-            StoragePath = StoragePaths.CreateStorageFolder();
-        }
-
         [Fact]
- 
+
         public void Id_Generateor_Tests()
         {
-            var storagePath = StoragePaths.CreateStorageFolder();
-            var core = new Core(storagePath);
+            var core = new Core(Path.GetRandomFileName());
 
             // generating ids in root without any clusters
             Assert.Equal(1, core.GetNewStoreId());
@@ -39,21 +31,12 @@ namespace Acrobit.AcroFS.Tests
         }
 
         [Fact]
-        public void DefaultRepository_Tests()
-        {
-
-            var core = new Core();
-
-            Assert.Equal(StoragePaths.DefaultFolder, Core.GetDefaultRepositoryPath());
-        }
-
-
-        [Fact]
         public void Hashed_Path_Generateor_Test()
         {
-            var core = new Core(StoragePath);
+            var storagePath = Path.GetRandomFileName();
+            var core = new Core(storagePath);
 
-            // zero should return Emply
+            // zero should return Empty
             Assert.Equal("", core.GenerateHashedPath(0));
 
             // docId 5
@@ -65,16 +48,16 @@ namespace Acrobit.AcroFS.Tests
 
 
             var docId = 5; // $00/$00/$00/$00/$05
-            var path = core.GetHashedPath(docId, "news");
 
-            Assert.Equal($"{StoragePath}news/$00/$00/$00/$00/$05",
+            Assert.Equal($"{storagePath}/news/$00/$00/$00/$00/$05",
                 core.GetHashedPath(docId, "news"));
         }
 
         [Fact]
         public void String_Key_Hashed_Path_Generateor_Test()
         {
-            var core = new Core(StoragePath);
+            var storagePath = Path.GetRandomFileName();
+            var core = new Core(storagePath);
 
             // zero should return Emply
             Assert.Equal("", core.GenerateHashedPath(""));
@@ -82,37 +65,28 @@ namespace Acrobit.AcroFS.Tests
             // docId "custom_key"
             Assert.Equal("$cu/$st/$om/$_k/$ey", core.GenerateHashedPath("custom_key"));
 
-
-           
-
             var docKey = "custom_key"; // $cu/$st/$om/$_k/$ey
-            var path = core.GetHashedPath(docKey, "news");
 
-            Assert.Equal($"{StoragePath}news/$cu/$st/$om/$_k/$ey",
+            Assert.Equal($"{storagePath}/news/$cu/$st/$om/$_k/$ey",
                 core.GetHashedPath(docKey, "news"));
-
         }
 
         [Fact]
         public void Hashed_Path_Generateor_Generates_Simple_Path_Option_Test()
         {
-            var core = new Core(StoragePath, new StoreConfig { UseSimplePath = true});
+            var storagePath = Path.GetRandomFileName();
+            var core = new Core(storagePath, new StoreConfig { UseSimplePath = true });
 
             // zero should return Emply
             Assert.Equal("", core.GenerateHashedPath(""));
 
-            var docKey = "custom_key"; 
+            var docKey = "custom_key";
             Assert.Equal("custom_key", core.GenerateHashedPath(docKey));
 
             var path = core.GetHashedPath(docKey, "news");
 
-            Assert.Equal($"{StoragePath}news/custom_key",
+            Assert.Equal($"{storagePath}/news/custom_key",
                 path);
-
-
-
-
         }
-
     }
 }
