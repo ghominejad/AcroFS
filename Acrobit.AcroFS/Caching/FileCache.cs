@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Acrobit.AcroFS.Caching
 {
-    public class FileCache //: IMemoryCache
+    public class FileCache
     {
         private readonly ISystemClock _systemClock;
         private readonly IMemoryCache _memCache;

@@ -33,6 +33,21 @@ namespace Acrobit.AcroFS
             return filestore;
         }
 
+        public static void RemoveStore(string repositoryRoot)
+        {
+            if (stores.ContainsKey(repositoryRoot))
+            {
+                try
+                {
+                    Directory.Delete(repositoryRoot, true);
+                }
+                finally
+                {
+                    stores.Remove(repositoryRoot);
+                }
+            }
+        }
+
         [Obsolete("This method is obsolete. use CreateStore instead")]
         public static FileStore GetStore(string? repositoryRoot = null, StoreConfig? config = null) => CreateStore(repositoryRoot, config);
 
@@ -70,6 +85,31 @@ namespace Acrobit.AcroFS
 
             // Saving stream to the file 
             _core.SaveStreamToFile(hashedPath, content, options == StoreOptions.Compress);
+
+            // Returns new store id
+            return storeId;
+        }
+
+        public async Task<long> StoreStreamAsync(Stream content, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
+            // Checking content validation
+            if (content == null)
+                return 0;
+
+            // Generating Store Id if needed
+            long storeId = id;
+            if (storeId == 0)
+                storeId = _core.GetNewStoreId(clusterId, clusterPath);
+
+            // full path of the file
+            string hashedPath =
+                _core.GetHashedPath(storeId, clusterId, clusterPath);
+
+            // Creating top directories
+            _core.PrepaireDirectoryByFilename(hashedPath);
+
+            // Saving stream to the file 
+            await _core.SaveStreamToFileAsync(hashedPath, content, options == StoreOptions.Compress);
 
             // Returns new store id
             return storeId;
@@ -117,6 +157,18 @@ namespace Acrobit.AcroFS
 
             // Storing to disk
             var result = StoreStream(stream, clusterPath, options, id, clusterId);
+
+            stream.Close();
+            return result;
+        }
+
+        public async Task<long> StoreTextAsync(string content, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
+            // Converting utf8 text to Memory Stream
+            var stream = content.ToMemoryStream();
+
+            // Storing to disk
+            var result = await StoreStreamAsync(stream, clusterPath, options, id, clusterId);
 
             stream.Close();
             return result;
@@ -178,6 +230,21 @@ namespace Acrobit.AcroFS
 
             var jsonData = JsonConvert.SerializeObject(data);
             return StoreText(jsonData, clusterPath, options, id, clusterId);
+        }
+
+        public async Task<long> StoreAsync<T>(T data, string clusterPath = "", StoreOptions options = StoreOptions.None, long id = 0, long clusterId = 0)
+        {
+            if (data is Stream stream)
+            {
+                return await StoreStreamAsync(stream, clusterPath, options, id, clusterId);
+            }
+            else if (data is string s)
+            {
+                return await StoreTextAsync(s, clusterPath, options, id, clusterId);
+            }
+
+            var jsonData = JsonConvert.SerializeObject(data);
+            return await StoreTextAsync(jsonData, clusterPath, options, id, clusterId);
         }
 
         public void StoreByKey<T>(object key, T data, string clusterPath = "", StoreOptions options = StoreOptions.None, long clusterId = 0)
@@ -397,6 +464,20 @@ namespace Acrobit.AcroFS
             return result;
         }
 
+        public async Task<string?> LoadTextAsync(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            var stream = await LoadAsync(docKey, clusterPath, options, clusterId);
+            if (stream == null)
+            {
+                return null;
+            }
+
+            string result = stream.ReadToEnd();
+            stream.Close();
+
+            return result;
+        }
+
         // Loading a binary attached item 
         public Stream? LoadStreamAttachment(object key, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
@@ -467,7 +548,6 @@ namespace Acrobit.AcroFS
 
             var paths = _core.GetFilesStartByTerm(parentFolder, docName + "-");
 
-            var contents = new List<Stream>();
             var contentsTasks = new List<Task<Stream>>();
             foreach (var path in paths)
             {
@@ -492,9 +572,38 @@ namespace Acrobit.AcroFS
             return list;
         }
 
+        public async Task<List<string>> LoadTextAttachmentsAsync(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            var list = new List<string>();
+
+            var streamList = await LoadStreamAttachmentsAsync(docKey, clusterPath, options, clusterId);
+
+            foreach (var stream in streamList)
+            {
+                list.Add(stream.ReadToEnd());
+                stream.Close();
+            }
+
+            return list;
+        }
+
         public string? LoadTextAttachment(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
             var stream = LoadStreamAttachment(docKey, attachName, clusterPath, options, clusterId);
+            if (stream == null)
+            {
+                return null;
+            }
+
+            string result = stream.ReadToEnd();
+            stream.Close();
+
+            return result;
+        }
+
+        public async Task<string?> LoadTextAttachmentAsync(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
+        {
+            var stream = await LoadStreamAttachmentAsync(docKey, attachName, clusterPath, options, clusterId);
             if (stream == null)
             {
                 return null;

@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Internal;
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AcroFS.Tests
 {
@@ -18,7 +15,7 @@ namespace AcroFS.Tests
 
         public void Add(TimeSpan timeSpan)
         {
-            UtcNow = UtcNow + timeSpan;
+            UtcNow += timeSpan;
         }
     }
 }
