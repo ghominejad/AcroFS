@@ -1,288 +1,246 @@
-
-## Cross-platform, small and super fast file-based storage library
-
-`AcroFS` is a tiny, cross-platform and super fast file system based storage library that can manage huge amount of files on your file system.
-
-It also provides a persistent caching layer for .Net `IMemoryCache` to benefit both file caching and memory caching together!
-
-
-## File store quick examples :
-``` csharp
-// Get the default store
-var _repository = FileStore.CreateStore();
-```
-``` csharp
-// store
-var docId = _repository.Store(data);
-
-// load
-var data = _repository.Load(docId);
-
-```
-
-``` csharp
-// store models with a custpm key
-_repository.Store("the-key", myModel);
-
-// load model
-var model = _repository.Load<MyModel>("the-key", myModel);
-
-```
-
-## Persistent cache quick examples : 
-``` csharp
-// set cache
-_memoryCache.Persistent().Set(key, value, TimeSpan.FromMinutes(1));
-
-// get cache
-var found = _memoryCache.Persistent().TryGetValue(cacheKey, out result);
-
-// get or create
-var cachedResult = await _memoryCache.Persistent().GetOrCreate(cacheKey, async entry =>
-{
-    entry.SlidingExpiration = TimeSpan.FromSeconds(10);
-
-    var result = await loadMyDataAsync();
-    
-    return result;
-});
-
-```
-
-# Features
-
-- Multiple Storage
-- Sub Storages
-- Persistent cache layer for .Net `IMemoryCache`
-- Json Serialization/Deserialization
-- GZip Compression / Decompression for text files
-- Store/Load Models, Objects, Texts and Streams
-- Store/Load Attachments related to a doc
-- Assigns unique ids automatically
-- .Net Core / Mono / Linux / Mac Support 
-
-
-# Download
+# AcroFS
 
 [![NuGet version](https://img.shields.io/nuget/v/Acrobit.AcroFS.svg)](https://www.nuget.org/packages/Acrobit.AcroFS)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A tiny, cross-platform .NET library built around two primitives:
+
+1. **A directory-sharded blob store.** Each stored item gets a sequential id that is
+   fanned out into a multi-level hex directory tree (e.g. `…/12/31/26/5A/17`), so
+   millions of small files can live on a single filesystem without hitting
+   files-per-directory limits — the same sharding idea behind Git's object store and
+   Docker's layer store. Ids are sequential and hex-fanned for sharding; this is *not*
+   content-addressable storage (nothing is hashed by content).
+
+2. **A write-through persistent cache over .NET `IMemoryCache`.** `GetOrCreate` /
+   `GetOrCreateAsync` tier memory → disk, so cached values survive process restarts.
+
+Objects are serialized with [Newtonsoft.Json](https://www.newtonsoft.com/json). Text and
+binary blobs can be GZip-compressed on write.
+
+> **Compatibility:** .NET Standard 2.1 — runs on .NET 5 through .NET 10.
+
+## When to use it
+
+- **Persistent cache for expensive computations** — e.g. LLM responses or embeddings —
+  where the memory → disk tiering keeps results across restarts. AcroFS has no
+  AI-specific code; it's just a good fit for caching anything costly to recompute.
+- **Local-first / edge artifact storage** for millions of small blobs, without the
+  per-request cost and latency of a cloud object store.
+- **High-volume document / blob archives** where each document carries its own
+  attachments.
+
+## Features
+
+- **Async and synchronous APIs** for every operation
+- **Directory-sharded layout** that scales to millions of small files
+- **Persistent write-through cache** over .NET `IMemoryCache` — survives process restarts
+- **Store and load** objects, text, and streams — by sequential id or by key
+- **Per-document attachments** (objects, text, or streams)
+- **Sub-storages** — named clusters, each with its own id sequence
+- **Multiple independent stores** at custom filesystem locations
+- **Optional GZip compression** on write
+- **JSON serialization** via Newtonsoft.Json
+- **Cross-platform** — .NET Standard 2.1, runs on .NET 5 through .NET 10
 
 
+## Install
 
-
-# Examples
-<br/>
-
-## Create or get the default repository
-``` csharp
-var _repository = FileStore.CreateStore();
-```
-> All files will be stored in `./Data/default-store` 
-
-
-## Store and load models
-
-``` csharp
-// store    
-long docId = _repository.Store<MyModel>(model1);
-
-// load
-var myModel = _repository.Load<MyModel>(docId));
-```
-
-
-## Store and load by a key
-``` csharp
-var key ="MyModel";
-// store
-_store.StoreByKey(key, data);
-
-// load
-var myModel = _repository.Load<MyModel>(key);
-```
-
-## Store and load texts
-``` csharp
-
-// store    
-long docId = _repository.StoreText("the content");
-
-// load
-Assert.Equal("the content", _repository.LoadText(docId));
-```
-
- <br/>
-
-## Store and load Streams
-``` csharp
-// store    
-long docId = _repository.Store(theStream);
-
-// load
-var myStream = _repository.Load(docId));
+```bash
+dotnet add package Acrobit.AcroFS
 ```
 
+## Quick start
 
+The async methods are the recommended surface; every async method below has a
+synchronous equivalent (drop the `Async` suffix).
 
-## Use simple path instead of hashed path
-``` csharp
-var _repository = FileStore.CreateStore()
-    .UseSimplePath();
+```csharp
+// Get the default store (files land in ./Data/default-store)
+var store = FileStore.CreateStore();
 
-var key ="MyModel.json";
-// store
-_store.StoreByKey(key, data);
+// Store any object — it's JSON-serialized and assigned a new sequential id
+long id = await store.StoreAsync(myModel);
 
-// load
-var myModel = _repository.Load<MyModel>(key));
-```
-## Create the store in a custom location
-```CSHARP
-var _repository = FileStore.CreateStore("c:\\store1");
-```
-<br/>
-
-## Attachments
-``` csharp
-// create doc
-long docId = _repository.StoreText("the content");
-
-// store two attachments
-_repository.Attach(docId, "attach-name-1", "attachment content 1");
-_repository.Attach(docId, "attach-name-2", "attachment content 2");
-
-_repository.Attach(docId, "attach-name-3", myModel);
-
-
-// load all attachments as list of strings
-IList<string> attachs = _repository.LoadTextAttachments(docId);
-
-// load all attachments as list of streams
-IList<Stream> attachs = _repository.LoadStreamAttachments(docId);
-
-// load "attach-name-1" 
-string myAttachmentText = _repository.LoadTextAttachment(docId, "attach-name-1");
-
-// load "attach-name-3" 
-MyModel modelAttachment = _repository.LoadAttachment<MyModel>(docId, "attach-name-3");
-
-// load all attachments as MyModel 
-IList<MyModel> myModelList = _repository.LoadAttachments<MyModel>(docId);
-
-
+// Load it back
+MyModel? model = await store.LoadAsync<MyModel>(id);
 ```
 
-<br/>
+Persistent cache — compute on a miss, reuse on a hit, survive restarts:
 
-## GZip Compresion for Texts
-``` csharp
-// store    
-long docId = _repository.StoreText("a large text", 
-    options: StoreOptions.Compress);
+```csharp
+IMemoryCache memoryCache;            // injected via DI
+var cache = memoryCache.Persistent();
 
-// load
-var myText = _repository.LoadText(docId, 
-    options: LoadOptions.Decompress);
+var answer = await cache.GetOrCreateAsync("prompt:" + promptHash, async entry =>
+{
+    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
+    return await CallLlmAsync(prompt);   // only runs when the value isn't cached
+});
 ```
-> Objects also support gzip compresstion 
 
-<br/>
+## File store
 
-## Sub Storage
-``` csharp
-//  creating news docs
-long newsId1 = _repository.StoreText("news content 1", "news");
-long newsId2 = _repository.StoreText("news content 2", "news");
+### Store and load by id
 
-//  creating articles docs
-long articleId1 = _repository.StoreText("article content 1", "article");
-long articleId2 = _repository.StoreText("article content 2", "article");
-
-//  loading
-Assert.Equal("news content 1", _repository.LoadText(newsId1, "news"));
-Assert.Equal("article content 2", _repository.LoadText(articleId2, "article"));
-
-
+```csharp
+long id = await store.StoreAsync(model);          // returns a new sequential id
+MyModel? model = await store.LoadAsync<MyModel>(id);
 ```
-The output File System :
 
+### Store and load by a key
+
+```csharp
+await store.StoreByKeyAsync("user-42", model);
+MyModel? model = await store.LoadAsync<MyModel>("user-42");
 ```
+
+### Texts
+
+```csharp
+long id = await store.StoreTextAsync("the content");
+string? text = await store.LoadTextAsync(id);
+```
+
+### Streams
+
+```csharp
+long id = await store.StoreStreamAsync(stream);
+using Stream? data = await store.LoadAsync(id);
+```
+
+### Attachments
+
+Any stored item can carry named attachments (objects, text or streams).
+
+```csharp
+long id = await store.StoreTextAsync("the content");
+
+await store.AttachAsync(id, "metadata", myModel);
+await store.AttachTextAsync(id, "note", "attachment content");
+
+MyModel? meta = await store.LoadAttachmentAsync<MyModel>(id, "metadata");
+string?  note = await store.LoadTextAttachmentAsync(id, "note");
+
+List<string> allText = await store.LoadTextAttachmentsAsync(id);
+```
+
+### GZip compression
+
+```csharp
+long id = await store.StoreTextAsync(largeText, options: StoreOptions.Compress);
+string? text = await store.LoadTextAsync(id, options: LoadOptions.Decompress);
+```
+
+> Objects and streams support compression through the same `options` argument.
+
+### Sub-storages
+
+Group documents under a named cluster path (the second argument). Each cluster keeps
+its own id sequence.
+
+```csharp
+long newsId    = await store.StoreTextAsync("news content",    "news");
+long articleId = await store.StoreTextAsync("article content", "article");
+
+await store.LoadTextAsync(newsId,    "news");
+await store.LoadTextAsync(articleId, "article");
+```
+
+Resulting layout:
+
+```text
 StorageRoot\news\...\01
-                 ...\02
-
+                ...\02
 StorageRoot\article\...\01
-                    ...\02
-````
-
-# FileCache
-Its a persistent layer for `IMemoryCache`
-## Instantiation
-``` csharp
-IMemoryCache _memoryCache; // resolve it via .net dependency injection
-FileCache _cache = memoryCache.Persistent();
+                   ...\02
 ```
-> There is no overhead on `Persistent()` method so you can use it each time you want to use file cache over memory cache : `_memoryCache.Persistent().Set(...)` or `_memoryCache.Persistent().GetOrCreate(...)`
-## Create persistent cache with absolute expiration
-``` csharp
-var key = "myKey";
-var value = "myValue";
 
-// store into both memory and file together
-_cache.Set(key, value, TimeSpan.FromMinutes(1));;
+### Custom location
 
-// retrive the cached value
-var found = _cache.TryGetValue(key, out result);
+```csharp
+var store = FileStore.CreateStore("/var/data/store1");
+```
 
-``` 
-> If the cached item wasn't found inside the memory, then the file cache will be loaded.
+### Simple paths
 
-> According to .Net `IMemoryCache` If you specify `DateTimeOffset` it will be used as absolute expiration
-> and if you specify `TimeSpan` it will be used as absolute expiration relative to now. 
-## Caching models
+```csharp
+// Store keys verbatim as paths instead of hex-fanning them
+var store = FileStore.CreateStore().UseSimplePath();
 
-``` csharp
-var myModel = new MyModel(...);
+var settings = new AppSettings { /* ... */ };
+await store.StoreByKeyAsync("app-settings", settings);
 
-// store into both memory and file together
-_cache.Set(cacheKey, myModel, TimeSpan.FromMinutes(1));;
+var loaded = await store.LoadAsync<AppSettings>("app-settings");
+```
 
-// retrive the cached value
-MyModel result;
-var found = _cache.TryGetValue(cacheKey, out result);
+## FileCache
 
-``` 
-## GetOrCreate
-``` csharp
-var cachedResult = await _cache.GetOrCreate(cacheKey, async entry =>
+A persistent, write-through layer over `IMemoryCache`. Writes go to both memory and
+disk; reads fall back to disk when the in-memory entry is gone (e.g. after a restart),
+honoring the original expiration.
+
+```csharp
+IMemoryCache memoryCache;            // injected via DI
+FileCache cache = memoryCache.Persistent();
+```
+
+> `Persistent()` has no overhead, so you can call it inline whenever you need the file
+> cache: `memoryCache.Persistent().Set(...)`.
+
+### Set and get with expiration
+
+```csharp
+// Write to memory and disk together
+cache.Set("myKey", "myValue", TimeSpan.FromMinutes(10));
+
+bool found = cache.TryGetValue("myKey", out string? value);
+```
+
+Async equivalents:
+
+```csharp
+await cache.SetAsync("myKey", model, TimeSpan.FromMinutes(10));
+var (found, value) = await cache.TryGetValueAsync<MyModel>("myKey");
+```
+
+> Following `IMemoryCache` conventions, a `DateTimeOffset` is treated as an absolute
+> expiration and a `TimeSpan` as an absolute expiration relative to now. Pass
+> `isSlidingExpiration: true` to the `TimeSpan` overload for sliding expiration.
+
+### GetOrCreate
+
+```csharp
+var result = await cache.GetOrCreateAsync("myKey", async entry =>
 {
     entry.SlidingExpiration = TimeSpan.FromSeconds(10);
-
-    var result = await loadMyDataAsync();
-    
-    return result;
+    return await LoadMyDataAsync();
 });
-
 ```
 
+A synchronous `GetOrCreate(key, Func<ICacheEntry, TItem>)` is also available.
 
+## How it works
 
-# How it works
+The store keeps the last id in memory and hands out new ones with an atomic `+1`, so id
+generation is fast and lock-free per cluster. Each id is converted to a zero-padded hex
+number and split into two-character segments to form a directory tree:
 
-It keeps the last ID in memory and generates new ones by a simple atomic +1 operation and so it's very fast.
-It converts a doc id into a hex number and stores it as 4 hirarchy folders
-
-    StorageRoot\12\31\26\5A\17
-
-The last hex number ( in this example `17` ) is the final file name.
-
-[//]: # ( By default configuration it currently can store billions of files or even more, simply by changing the configuration!)
-
-You can assign attachments to a file. They are stored as `Filename`[-]`AttachName`
-
-For example, two attachment files are assigned to `documentId  17`  as following file names:
-
+```text
+StorageRoot\12\31\26\5A\17
 ```
+
+The last segment (`17` here) is the file itself; the rest are directories. Spreading
+ids across this tree keeps any single directory small, even with millions of files.
+
+Attachments are stored next to their document as `Filename-AttachName`:
+
+```text
 StorageRoot\...\17
             ...\17-attachmentFile1
             ...\17-attachmentFile2
-````
+```
 
+## License
+
+[MIT](LICENSE)
