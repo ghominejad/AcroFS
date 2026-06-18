@@ -656,6 +656,116 @@ namespace Acrobit.AcroFS.Tests
             }
         }
 
+        [Fact]
+        public void StoreByKey_String_Stores_Raw_Text_Without_Double_Write()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                var key = GetRandomText();
+                var content = GetRandomText();
+
+                store.StoreByKey(key, content);
+
+                // The text must be stored verbatim, not re-serialized as a JSON string
+                Assert.Equal(content, store.LoadText(key));
+            }
+            finally
+            {
+                Directory.Delete(rootPath, true);
+            }
+        }
+
+        [Fact]
+        public async Task StoreByKey_String_Stores_Raw_Text_Without_Double_Write_Async()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                var key = GetRandomText();
+                var content = GetRandomText();
+
+                await store.StoreByKeyAsync(key, content);
+
+                Assert.Equal(content, await store.LoadTextAsync(key));
+            }
+            finally
+            {
+                Directory.Delete(rootPath, true);
+            }
+        }
+
+        [Fact]
+        public void StoreByKey_Stream_Stores_Content_Without_Double_Write()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                var key = GetRandomText();
+                var content = GetRandomText();
+
+                using var stream = new MemoryStream();
+                stream.TestWrite(content);
+
+                store.StoreByKey(key, stream);
+
+                // The stream content must survive, not be overwritten by serializing the Stream object
+                Assert.Equal(content, store.LoadText(key));
+            }
+            finally
+            {
+                Directory.Delete(rootPath, true);
+            }
+        }
+
+        [Fact]
+        public void Attach_String_Stores_Raw_Text_Without_Double_Write()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                long docId = store.StoreText(GetRandomText());
+                var content = GetRandomText();
+
+                store.Attach(docId, "note", content);
+
+                Assert.Equal(content, store.LoadTextAttachment(docId, "note"));
+            }
+            finally
+            {
+                Directory.Delete(rootPath, true);
+            }
+        }
+
+        [Fact]
+        public void Generic_String_Round_Trips_Through_Store_And_Load()
+        {
+            var rootPath = Path.GetRandomFileName();
+            try
+            {
+                var store = FileStore.CreateStore(rootPath);
+
+                var content = GetRandomText();
+
+                long id = store.Store(content);
+
+                // Load<string> must mirror how Store<string> wrote it
+                Assert.Equal(content, store.Load<string>(id));
+            }
+            finally
+            {
+                Directory.Delete(rootPath, true);
+            }
+        }
+
         private static string GetRandomText()
         {
             return Guid.NewGuid().ToString();

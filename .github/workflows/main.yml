@@ -1,21 +1,18 @@
 name: acrofs-project
 on:
   push:
-    branches: 
-     - test
+    branches:
      - master
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Side by Side testing
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          #dotnet-version: '5.0.x'
-          dotnet-version: '6.0.x'
-          include-prerelease: true
+          dotnet-version: '8.0.x'
 
       - run: dotnet build Acrobit.AcroFS
 
@@ -25,6 +22,6 @@ jobs:
         run: dotnet pack --configuration Release Acrobit.AcroFS
 
       - name: Publish the package to nuget.org
-        run: dotnet nuget push */bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "**/bin/Release/*.nupkg" -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json --skip-duplicate
         env:
             NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

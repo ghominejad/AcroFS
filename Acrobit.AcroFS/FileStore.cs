@@ -252,10 +252,12 @@ namespace Acrobit.AcroFS
             if (data is Stream stream)
             {
                 StoreStreamByKey(key, stream, clusterPath, options, clusterId);
+                return;
             }
             else if (data is string s)
             {
                 StoreTextByKey(key, s, clusterPath, options, clusterId);
+                return;
             }
 
             var jsonData = JsonConvert.SerializeObject(data);
@@ -267,10 +269,12 @@ namespace Acrobit.AcroFS
             if (data is Stream stream)
             {
                 await StoreStreamByKeyAsync(key, stream, clusterPath, options, clusterId);
+                return;
             }
             else if (data is string s)
             {
                 await StoreTextByKeyAsync(key, s, clusterPath, options, clusterId);
+                return;
             }
 
             var jsonData = JsonConvert.SerializeObject(data);
@@ -338,11 +342,12 @@ namespace Acrobit.AcroFS
             if (attachContent is Stream stream)
             {
                 AttachStream(key, attachName, stream, clusterPath, options, clusterId);
-
+                return;
             }
             else if (attachContent is string s)
             {
                 AttachText(key, attachName, s, clusterPath, options, clusterId);
+                return;
             }
 
             var jsonData = JsonConvert.SerializeObject(attachContent);
@@ -354,10 +359,12 @@ namespace Acrobit.AcroFS
             if (attachContent is Stream stream)
             {
                 await AttachStreamAsync(key, attachName, stream, clusterPath, options, clusterId);
+                return;
             }
             else if (attachContent is string s)
             {
                 await AttachTextAsync(key, attachName, s, clusterPath, options, clusterId);
+                return;
             }
 
             var jsonData = JsonConvert.SerializeObject(attachContent);
@@ -430,6 +437,16 @@ namespace Acrobit.AcroFS
 
         public T? Load<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
+            // Symmetric with Store<T>: strings and streams are stored raw, not as JSON
+            if (typeof(T) == typeof(string))
+            {
+                return (T?)(object?)LoadText(docKey, clusterPath, options, clusterId);
+            }
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (T?)(object?)Load(docKey, clusterPath, options, clusterId);
+            }
+
             var jsonData = LoadTextUtf8(docKey, clusterPath, options, clusterId);
             if (jsonData == null)
             {
@@ -441,6 +458,16 @@ namespace Acrobit.AcroFS
 
         public async Task<T?> LoadAsync<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
+            // Symmetric with StoreAsync<T>: strings and streams are stored raw, not as JSON
+            if (typeof(T) == typeof(string))
+            {
+                return (T?)(object?)await LoadTextAsync(docKey, clusterPath, options, clusterId);
+            }
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (T?)(object?)await LoadAsync(docKey, clusterPath, options, clusterId);
+            }
+
             var jsonData = await LoadTextUtf8Async(docKey, clusterPath, options, clusterId);
             if (jsonData == null)
             {
@@ -648,6 +675,16 @@ namespace Acrobit.AcroFS
 
         public T? LoadAttachment<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
+            // Symmetric with Attach<T>: strings and streams are attached raw, not as JSON
+            if (typeof(T) == typeof(string))
+            {
+                return (T?)(object?)LoadTextAttachment(docKey, attachName, clusterPath, options, clusterId);
+            }
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (T?)(object?)LoadStreamAttachment(docKey, attachName, clusterPath, options, clusterId);
+            }
+
             var jsonData = LoadTextAttachmentUtf8(docKey, attachName, clusterPath, options, clusterId);
 
             if (jsonData == null)
@@ -660,6 +697,16 @@ namespace Acrobit.AcroFS
 
         public async Task<T?> LoadAttachmentAsync<T>(object docKey, string attachName, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
+            // Symmetric with AttachAsync<T>: strings and streams are attached raw, not as JSON
+            if (typeof(T) == typeof(string))
+            {
+                return (T?)(object?)await LoadTextAttachmentAsync(docKey, attachName, clusterPath, options, clusterId);
+            }
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (T?)(object?)await LoadStreamAttachmentAsync(docKey, attachName, clusterPath, options, clusterId);
+            }
+
             var jsonData = await LoadTextAttachmentUtf8Async(docKey, attachName, clusterPath, options, clusterId);
 
             if (jsonData == null)
@@ -673,6 +720,16 @@ namespace Acrobit.AcroFS
 
         public IList<T> LoadAttachments<T>(object docKey, string clusterPath = "", LoadOptions options = LoadOptions.None, long clusterId = 0)
         {
+            // Symmetric with Attach<T>: strings and streams are attached raw, not as JSON
+            if (typeof(T) == typeof(string))
+            {
+                return (IList<T>)(object)LoadTextAttachments(docKey, clusterPath, options, clusterId);
+            }
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (IList<T>)(object)LoadStreamAttachments(docKey, clusterPath, options, clusterId);
+            }
+
             var list = new List<T>();
 
             var jsonList = LoadTextAttachments(docKey, clusterPath, options, clusterId);
