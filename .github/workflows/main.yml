@@ -7,6 +7,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Side by Side testing
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Setup dotnet
@@ -21,7 +24,11 @@ jobs:
       - name: Create the package
         run: dotnet pack --configuration Release Acrobit.AcroFS
 
+      - name: NuGet login (trusted publishing)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ghominejad
+
       - name: Publish the package to nuget.org
-        run: dotnet nuget push "**/bin/Release/*.nupkg" -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json --skip-duplicate
-        env:
-            NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: dotnet nuget push "**/bin/Release/*.nupkg" -k ${{ steps.login.outputs.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
